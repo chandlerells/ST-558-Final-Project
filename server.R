@@ -1,28 +1,23 @@
-#
-# This is the server logic of a Shiny web application. You can run the
-# application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
+library(tidyverse)
 
-# Define server logic required to draw a histogram
+nba_data <- read_csv("nba_2022-23_all_stats_with_salary.csv")
+
+
 function(input, output, session) {
 
-    output$distPlot <- renderPlot({
-
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white',
-             xlab = 'Waiting time to next eruption (in mins)',
-             main = 'Histogram of waiting times')
-
+    output$plot <- renderPlot({
+      
+      position_filter <- nba_data %>%
+        filter(Position == input$position)
+      
+      ggplot(position_filter, aes(x = !!sym(input$stat), y = Salary/1000000)) +
+        geom_point() +
+        geom_smooth(se = FALSE) +
+        labs(x = paste0(input$stat, " Per Game"),
+             y = "Salary ($M)",
+             title = paste0("Salary Based on ", input$stat, " per game for the ", input$position, " position"))
+      
     })
 
 }
