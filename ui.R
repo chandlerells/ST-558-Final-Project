@@ -1,4 +1,5 @@
 library(shiny)
+library(tidyverse)
 
 # Define UI for application that draws a histogram
 fluidPage(
@@ -15,6 +16,7 @@ fluidPage(
                  conditionalPanel(condition = "input.plotType == 'Scatter Plot'",
                                   selectInput("position",
                                               h4("Select Position"),
+                                              selected = unique(nba_data$Position)[1],
                                               choices = as.factor(nba_data$Position)),
                                   selectInput("stat",
                                               h4("Select Statistic"),
@@ -36,12 +38,21 @@ fluidPage(
                                   ),
                  selectInput("summaryType", 
                              h3("Select Summary Type"),
-                             choices = c("Mean", "Standard Deviation"),
-                 )
+                             choices = c("Mean and Standard Deviation", 
+                                         "Median and IQR")
+                             ),
+                 checkboxInput("top", h5("Show table of the highest earners based on selected position?")),
+                 conditionalPanel(condition = "input.top == true",
+                                  selectInput("number",
+                                              h6("How Many?"),
+                                              selected = 10,
+                                              choices = c(5, 10, 15, 20)))
+                 
                  ),
                mainPanel(
                  plotOutput("plot"),
-                 textOutput("info")
+                 htmlOutput("info"),
+                 tableOutput("table")
                  )
                )
              )

@@ -92,3 +92,19 @@ paste("The Average", "input$stat", "for the", "input$position", "Position is",
             round(mean(newData[[1]], na.rm = TRUE), 2))
 ```
 
+```{r}
+if (2+2 == 4) {
+  writeLines(c(paste("test"), paste("tw")))
+}
+help("writeLines")
+
+nba_data %>% 
+        filter(Position == "PG") %>%
+        select(`Player Name`, Salary) %>%
+        top_n(10)
+
+```
+
+
+
+

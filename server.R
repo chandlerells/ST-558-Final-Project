@@ -1,12 +1,11 @@
 library(shiny)
 library(tidyverse)
 library(ggrepel)
+library(scales)
 
 nba_data <- read_csv("nba_2022-23_all_stats_with_salary.csv")
 
 nba_data <- nba_data %>%
-  mutate(Team = if_else(grepl("/", Team), substr(Team, 5, 7), substr(Team, 1, 3)),
-         Position = if_else(grepl("-", Position), substr(Position, 4, 5), substr(Position, 1, 2))) %>%
   rename(Minutes_Per_Game = MP, 
          Field_Goals_Made_Per_Game = FG,
          Field_Goal_Percentage = 'FG%',
@@ -130,20 +129,112 @@ function(input, output, session) {
       select(input$stat)
   })
   
-  output$info <- renderText({
+  getData2 <- reactive({
+    newData2 <- nba_data %>% 
+      filter(Team == input$team) %>%
+      select(input$variable)
+  })
+  
+  output$info <- renderUI({
     
     newData <- getData()
+    newData2 <- getData2()
+    position_filter <- newVar1()
+    team_filter <- newVar4()
     
     if (input$plotType == "Scatter Plot" &
-        input$summaryType == "Mean") {
+        input$summaryType == "Mean and Standard Deviation") {
       
-      paste("The Average", input$stat, "for the", input$position, "Position is", 
-            round(mean(newData[[1]], na.rm = TRUE), 2))
+      str1 <- paste("The Average Salary (in Millions) and", input$stat, "for the", 
+                    input$position, "Position is", 
+                    dollar(round(mean(position_filter$Salary, na.rm = TRUE), 2)), 
+                    "and",
+                    format(round(mean(newData[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                    ", respectively.")
+      
+      str2 <- paste("The Standard Deviation for Salary (in Millions) and", input$stat, "for the", 
+                    input$position, "Position is", 
+                    dollar(round(sd(position_filter$Salary, na.rm = TRUE), 2)), 
+                    "and",
+                    format(round(sd(newData[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                    ", respectively.")
+      
+      HTML(paste(str1, str2, sep = '<br/>'))
+      
+      } else if (input$plotType == "Scatter Plot" &
+                 input$summaryType == "Median and IQR") {
+        
+        str1 <- paste("The Median Salary (in Millions) and", input$stat, "for the", 
+                      input$position, "Position is", 
+                      dollar(round(median(position_filter$Salary, na.rm = TRUE), 2)), 
+                      "and",
+                      format(round(median(newData[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                      ", respectively.")
+        
+        str2 <- paste("The IQR for Salary (in Millions) and", input$stat, "for the", 
+                      input$position, "Position is", 
+                      dollar(round(IQR(position_filter$Salary, na.rm = TRUE), 2)), 
+                      "and",
+                      format(round(IQR(newData[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                      ", respectively.")
+        
+        HTML(paste(str1, str2, sep = '<br/>'))  
+        
+      } else if (input$plotType == "Bar Plot" &
+                 input$summaryType == "Mean and Standard Deviation") {
+        
+        str1 <- paste("The Average Salary (in Millions) and", input$variable, "for the", 
+                      input$team, "Team is", 
+                      dollar(round(mean(team_filter$Salary, na.rm = TRUE), 2)), 
+                      "and",
+                      format(round(mean(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                      ", respectively.")
+        
+        str2 <- paste("The Standard Deviation for Salary (in Millions) and", input$variable, "for the", 
+                      input$team, "Team is", 
+                      dollar(round(sd(team_filter$Salary, na.rm = TRUE), 2)), 
+                      "and",
+                      format(round(sd(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                      ", respectively.")
+        
+        HTML(paste(str1, str2, sep = '<br/>'))
+        
+      } else if (input$plotType == "Bar Plot" &
+                 input$summaryType == "Median and IQR") {
+        
+        str1 <- paste("The Median Salary (in Millions) and", input$variable, "for the", 
+                      input$team, "Team is", 
+                      dollar(round(median(team_filter$Salary, na.rm = TRUE), 2)), 
+                      "and",
+                      format(round(median(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                      ", respectively.")
+        
+        str2 <- paste("The IQR for Salary (in Millions) and", input$variable, "for the", 
+                      input$team, "Team is", 
+                      dollar(round(IQR(team_filter$Salary, na.rm = TRUE), 2)), 
+                      "and",
+                      format(round(IQR(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                      ", respectively.")
+        
+        HTML(paste(str1, str2, sep = '<br/>'))
+        
       }
     })
+  
+  output$table <- renderTable({
+    
+    if (input$top == TRUE) {
+      
+      nba_data %>% 
+        filter(Position == input$position) %>%
+        select(`Player Name`, Salary) %>%
+        top_n(as.integer(input$number)) %>%
+        mutate(Salary = dollar(Salary))
+    }
+
+  })
 
 }
-
 
 
 
