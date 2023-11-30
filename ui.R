@@ -33,10 +33,15 @@ fluidPage(
                                               choices = names(nba_data %>%
                                                                 select(contains("_")))),
                                   checkboxInput("facetWrap", h5("Facet by Position?"))
-                                  )
+                                  ),
+                 selectInput("summaryType", 
+                             h3("Select Summary Type"),
+                             choices = c("Mean", "Standard Deviation"),
+                 )
                  ),
                mainPanel(
-                 plotOutput("plot")
+                 plotOutput("plot"),
+                 textOutput("info")
                  )
                )
              )

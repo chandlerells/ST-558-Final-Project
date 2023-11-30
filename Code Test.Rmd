@@ -83,5 +83,12 @@ ggplot(team_filter, aes(x = reorder(`Player Name`, -Salary), y = Salary)) +
   geom_text(aes(label = Salary), size = 3, position=position_dodge(width=0.9), vjust=-0.25) +
   facet_wrap(~Position, scales ="free_y", ncol = 1, strip.position = "left")
 
+
+newData <- nba_data %>% 
+      filter(Position == "SG") %>%
+      select(Minutes_Per_Game)
+mean(newData[[1]])
+paste("The Average", "input$stat", "for the", "input$position", "Position is", 
+            round(mean(newData[[1]], na.rm = TRUE), 2))
 ```
 

@@ -121,6 +121,29 @@ function(input, output, session) {
         
       }
     
-    }, height = 700, width = 1100)
+    }#, height = 700, width = 1100
+    )
+  
+  getData <- reactive({
+    newData <- nba_data %>% 
+      filter(Position == input$position) %>%
+      select(input$stat)
+  })
+  
+  output$info <- renderText({
+    
+    newData <- getData()
+    
+    if (input$plotType == "Scatter Plot" &
+        input$summaryType == "Mean") {
+      
+      paste("The Average", input$stat, "for the", input$position, "Position is", 
+            round(mean(newData[[1]], na.rm = TRUE), 2))
+      }
+    })
 
 }
+
+
+
+
