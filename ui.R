@@ -1,12 +1,3 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 
 # Define UI for application that draws a histogram
@@ -16,19 +7,33 @@ fluidPage(
              titlePanel("Exploratory Data Analysis"),
              sidebarLayout(
                sidebarPanel(
-                 selectInput("plot_type", 
-                             "Select Plot Type",
-                             choices = c("Scatter Plot"),
+                 selectInput("plotType", 
+                             h3("Select Plot Type"),
+                             choices = c("Scatter Plot", "Bar Plot"),
                              ),
-                 selectInput("position",
-                             "Select Position",
-                             selected = "PG",
-                             choices = c("C", "PG", "SG", "PF","SF")),
-                 selectInput("stat",
-                             "Select Statistic",
-                             selected = "PTS",
-                             choices = c("MP", "FG%", "3P", "2P","AST", "PTS", "PER",
-                                         "TS%","WS"))
+                 
+                 conditionalPanel(condition = "input.plotType == 'Scatter Plot'",
+                                  selectInput("position",
+                                              h4("Select Position"),
+                                              choices = as.factor(nba_data$Position)),
+                                  selectInput("stat",
+                                              h4("Select Statistic"),
+                                              choices = names(nba_data %>%
+                                                                select(contains("_")))),
+                                  checkboxInput("playerName", h5("Show Data Labels?")),
+                                  checkboxInput("ageColor", h5("Color Points by Age?"))
+                                  ),
+                 
+                 conditionalPanel(condition = "input.plotType == 'Bar Plot'",
+                                  selectInput("team",
+                                              h4("Select Team"),
+                                              choices = as.factor(nba_data$Team)),
+                                  selectInput("variable",
+                                              h4("Select Data Point"),
+                                              choices = names(nba_data %>%
+                                                                select(contains("_")))),
+                                  checkboxInput("facetWrap", h5("Facet by Position?"))
+                                  )
                  ),
                mainPanel(
                  plotOutput("plot")

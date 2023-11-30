@@ -17,32 +17,46 @@ library(tidyverse)
 ```{r}
 nba_data <- read_csv("nba_2022-23_all_stats_with_salary.csv")
 head(nba_data)
+
+nba_data <- nba_data %>%
+  mutate(Team = if_else(grepl("/", Team), substr(Team, 5, 7), substr(Team, 1, 3)),
+         Position = if_else(grepl("-", Position), substr(Position, 4, 5), substr(Position, 1, 2))) %>%
+  rename(Minutes_Per_Game = MP, 
+         Field_Goals_Made_Per_Game = FG,
+         Field_Goal_Percentage = 'FG%',
+         Three_Pointers_Made_Per_Game = '3P',
+         Two_Pointers_Made_Per_Game = '2P',
+         Assists_Per_Game = AST,
+         Points_Per_Game = PTS,
+         Player_Efficiency_Rating = PER,
+         True_Shooting_Percentage = 'TS%',
+         Win_Shares = WS)
+
+names(nba_data %>%
+        select(contains("_")))
+
 ```
 
-```{r}
+```{r plot-wider, fig.width=10, fig.height=4}
+library(ggrepel)
 position <- "SG"
 stats <- "AST"
 position_filter <- nba_data %>%
   filter(Position == position)
 
-ggplot(position_filter, aes(x = !!(as.name(stats)), y = Salary/1000000)) +
+ggplot(position_filter, aes(x = !!(as.name(stats)), y = Salary/1000000, color = Age)) +
   geom_point() +
-  geom_smooth(se = FALSE) +
   labs(x = paste0(stats, " Per Game"),
        y = "Salary ($M)",
-       title = paste0("Salary Based on ", stats, " per game for the ", position, " position"))
+       title = paste0("Salary Based on ", stats, " per game for the ", position, " position")) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_text_repel(aes(label = position_filter$`Player Name`), 
+            size = 2.2,
+            hjust = 0.5,
+            vjust = -1) +
+  scale_color_gradient(low = "blue", high = "red")
 
 
-
-position_filter <- nba_data %>%
-        filter(Position == input$position)
-      
-      ggplot(position_filter, aes(x = !!sym(input$stat), y = Salary/1000000)) +
-        geom_point() +
-        geom_smooth(se = FALSE) +
-        labs(x = paste0(input$stat, " Per Game"),
-             y = "Salary ($M)",
-             title = paste0("Salary Based on ", input$stat, " per game for the ", input$position, " position"))
 ```
 
 
@@ -52,4 +66,22 @@ ggplot(nba_data, aes(x = PTS, y = Salary)) +
 ```
 
 
+```{r plot-wider, fig.width=10, fig.height=4}
+team <- "GSW"
+variable <- "Minutes_Per_Game"
+
+team_filter <- nba_data %>%
+  filter(Team == team)
+
+ggplot(team_filter, aes(x = reorder(`Player Name`, -Salary), y = Salary)) +
+  geom_bar(stat="identity", fill = "orange") +
+  labs(x = "Player Name",
+       y = variable,
+       title = paste0(variable, " By Player On The ", team, " Team For The 2022-23 Season")) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(guide = guide_axis(n.dodge=2)) +
+  geom_text(aes(label = Salary), size = 3, position=position_dodge(width=0.9), vjust=-0.25) +
+  facet_wrap(~Position, scales ="free_y", ncol = 1, strip.position = "left")
+
+```
 
