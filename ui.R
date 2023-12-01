@@ -10,10 +10,11 @@ fluidPage(
                sidebarPanel(
                  selectInput("plotType", 
                              h3("Select Plot Type"),
-                             choices = c("Scatter Plot", "Bar Plot"),
+                             choices = c("Scatter Plot", "Bar Plot",
+                                         "Density"),
                              ),
                  
-                 conditionalPanel(condition = "input.plotType == 'Scatter Plot'",
+                 conditionalPanel(condition = "input.plotType == 'Scatter Plot' || input.plotType == 'Density'",
                                   selectInput("position",
                                               h4("Select Position"),
                                               selected = unique(nba_data$Position)[1],

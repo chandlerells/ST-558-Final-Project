@@ -68,6 +68,20 @@ function(input, output, session) {
   })
   
   
+  newvar6 <- reactive ({
+    
+    position_filter <- newVar1()
+    
+    basePlot4 <-
+      ggplot(position_filter, aes(x = !!sym(input$stat))) +
+      geom_density() +
+      labs(x = paste0(input$stat),
+           y = "Salary ($M)",
+           title = paste0("2022-23 Salary Based on ", input$stat, " for the ", input$position, " position")) +
+      theme(plot.title = element_text(hjust = 0.5))
+    
+  })
+  
 
   
   output$plot <- renderPlot({
@@ -78,6 +92,7 @@ function(input, output, session) {
     basePlot1 <- newVar2()
     basePlot2 <- newVar3()
     basePlot3 <- newvar5()
+    basePlot4 <- newvar6()
     
     playerName <- geom_text_repel(aes(label = position_filter$`Player Name`), 
                                   size = 5,
@@ -117,6 +132,10 @@ function(input, output, session) {
       } else if (input$plotType == "Bar Plot") {
         
         basePlot3
+        
+      } else if (input$plotType == "Density") {
+        
+        basePlot4
         
       }
     
