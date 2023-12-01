@@ -105,6 +105,20 @@ nba_data %>%
 
 ```
 
+```{r}
+
+newData3 <- nba_data %>%
+      filter(Salary >= 20000 & Salary <= 20000000) %>%
+      select(Position, Minutes_Per_Game)
+
+paste("The mean for the PG Position is", 
+                      format(round(mean(select(filter(newData3, Position == "PG"), Minutes_Per_Game)[[1]], na.rm = TRUE) 2),  big.mark = ",", scientific = FALSE), ", ",
+                      format(round(mean(select(filter(newData3, Position == "SG"), Minutes_Per_Game)[[1]], na.rm = TRUE) 2),  big.mark = ",", scientific = FALSE), " for the SG Position")
+
+format(round(mean(select(filter(newData3, Position == "PG"), Minutes_Per_Game[[1]]), na.rm = TRUE) 2),  big.mark = ",", scientific = FALSE)
+
+round(mean(select(filter(newData3, Position == "PG"), Minutes_Per_Game)[[1]]), 2)
+```
 
 
 

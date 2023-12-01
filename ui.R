@@ -11,9 +11,8 @@ fluidPage(
                  selectInput("plotType", 
                              h3("Select Plot Type"),
                              choices = c("Scatter Plot", "Bar Plot",
-                                         "Density"),
+                                         "Density", "Box Plot"),
                              ),
-                 
                  conditionalPanel(condition = "input.plotType == 'Scatter Plot' || input.plotType == 'Density'",
                                   selectInput("position",
                                               h4("Select Position"),
@@ -22,11 +21,15 @@ fluidPage(
                                   selectInput("stat",
                                               h4("Select Statistic"),
                                               choices = names(nba_data %>%
-                                                                select(contains("_")))),
+                                                                select(contains("_"))))
+                                  ),
+                 conditionalPanel(condition = "input.plotType == 'Scatter Plot'",
                                   checkboxInput("playerName", h5("Show Data Labels?")),
                                   checkboxInput("ageColor", h5("Color Points by Age?"))
                                   ),
-                 
+                 conditionalPanel(condition = "input.plotType == 'Density'",
+                                  checkboxInput("facetWrapAge", h5("Facet by Age?"))
+                                  ),
                  conditionalPanel(condition = "input.plotType == 'Bar Plot'",
                                   selectInput("team",
                                               h4("Select Team"),
@@ -35,8 +38,18 @@ fluidPage(
                                               h4("Select Data Point"),
                                               choices = names(nba_data %>%
                                                                 select(contains("_")))),
-                                  checkboxInput("facetWrap", h5("Facet by Position?"))
+                                  checkboxInput("facetWrapPosition", h5("Facet by Position?"))
                                   ),
+                 conditionalPanel(condition = "input.plotType == 'Box Plot'",
+                                  selectInput("stat2",
+                                              h4("Select Statistic"),
+                                              choices = names(nba_data %>%
+                                                                select(contains("_")))),
+                                  sliderInput("salaryRange", "Select Salary Range",
+                                              min = 0, max = 50000000, value = c(0, 50000000)),
+                                  checkboxInput("facetWrapAge2", h5("Facet by Age?"))
+                                  ),
+                 
                  selectInput("summaryType", 
                              h3("Select Summary Type"),
                              choices = c("Mean and Standard Deviation", 

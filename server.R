@@ -53,7 +53,7 @@ function(input, output, session) {
       filter(Team == input$team)
     })
   
-  newvar5 <- reactive ({
+  newvar5 <- reactive({
     team_filter <- newVar4()
     
     basePlot3 <- 
@@ -67,32 +67,65 @@ function(input, output, session) {
       geom_text(aes(label= !!sym(input$variable)), size = 3, position=position_dodge(width=0.9), vjust=-0.25)
   })
   
+  newVar7 <- reactive({
+    age_group <- nba_data %>%
+      filter(Position == input$position) %>%
+      mutate(age_group = if_else(Age <= 25, "<= 25",
+                                 if_else(Age <= 30, "26-30",
+                                         if_else(Age <= 35, "31-35", "36-42"))))
+  })
   
-  newvar6 <- reactive ({
+  newvar6 <- reactive({
     
-    position_filter <- newVar1()
+    age_group <- newVar7()
     
     basePlot4 <-
-      ggplot(position_filter, aes(x = !!sym(input$stat))) +
-      geom_density() +
+      ggplot(age_group, aes(x = !!sym(input$stat))) +
+      geom_density(color = 4,
+                   fill = 4,
+                   alpha = 0.25) +
       labs(x = paste0(input$stat),
-           y = "Salary ($M)",
-           title = paste0("2022-23 Salary Based on ", input$stat, " for the ", input$position, " position")) +
+           y = "Density",
+           title = paste0("2022-23 Density of ", input$stat, " for the ", input$position, " position")) +
       theme(plot.title = element_text(hjust = 0.5))
     
   })
   
-
+  newVar8 <- reactive({
+    salary_range <- nba_data %>%
+      filter(Salary >= input$salaryRange[1] & Salary <= input$salaryRange[2]) %>%
+      mutate(age_group = if_else(Age <= 25, "<= 25",
+                                 if_else(Age <= 30, "26-30",
+                                         if_else(Age <= 35, "31-35", "36-42"))))
+  })
+  
+  newvar9 <- reactive({
+    
+    salary_range <- newVar8()
+    
+    basePlot5 <-
+      ggplot(salary_range, aes(x = Position, y = !!sym(input$stat2))) +
+      geom_boxplot(color = 2,
+                   fill = 2,
+                   alpha = 0.25) +
+      labs(x = paste0(input$stat2),
+           y = "Value",
+           title = paste0("2022-23 Boxplot of ", input$stat2, " by position")) +
+      theme(plot.title = element_text(hjust = 0.5))
+  })
+  
   
   output$plot <- renderPlot({
     
     position_filter <- newVar1()
     team_filter <- newVar4()
+    salary_range <- newVar8()
     
     basePlot1 <- newVar2()
     basePlot2 <- newVar3()
     basePlot3 <- newvar5()
     basePlot4 <- newvar6()
+    basePlot5 <- newvar9()
     
     playerName <- geom_text_repel(aes(label = position_filter$`Player Name`), 
                                   size = 5,
@@ -103,6 +136,7 @@ function(input, output, session) {
     
     wrap <- facet_wrap(~Position, scales ="free_y", ncol = 1, strip.position = "left")
     
+    wrap2 <- facet_wrap(~age_group, scales ="free_y", ncol = 2, strip.position = "left")
     
     if (input$plotType == "Scatter Plot" &
         input$playerName == TRUE & 
@@ -125,7 +159,7 @@ function(input, output, session) {
         basePlot1
         
       } else if (input$plotType == "Bar Plot" &
-                 input$facetWrap == TRUE) {
+                 input$facetWrapPosition == TRUE) {
         
         basePlot3 + wrap
         
@@ -133,9 +167,23 @@ function(input, output, session) {
         
         basePlot3
         
+      } else if (input$plotType == "Density" &
+                 input$facetWrapAge == TRUE) {
+        
+        basePlot4 + wrap2
+        
       } else if (input$plotType == "Density") {
         
         basePlot4
+        
+      } else if (input$plotType == "Box Plot" &
+                 input$facetWrapAge2 == TRUE) {
+        
+        basePlot5 + wrap2
+        
+      } else if (input$plotType == "Box Plot") {
+        
+        basePlot5
         
       }
     
@@ -154,14 +202,23 @@ function(input, output, session) {
       select(input$variable)
   })
   
+  getData3 <- reactive({
+    newData3 <- nba_data %>%
+      filter(Salary >= input$salaryRange[1] & Salary <= input$salaryRange[2]) %>%
+      select(Position, input$stat2)
+  })
+  
   output$info <- renderUI({
     
     newData <- getData()
     newData2 <- getData2()
+    newData3 <- getData3()
     position_filter <- newVar1()
     team_filter <- newVar4()
+    salary_range <- newVar8()
     
-    if (input$plotType == "Scatter Plot" &
+    
+    if ((input$plotType == "Scatter Plot" || input$plotType == "Density") &
         input$summaryType == "Mean and Standard Deviation") {
       
       str1 <- paste("The Average Salary (in Millions) and", input$stat, "for the", 
@@ -180,7 +237,7 @@ function(input, output, session) {
       
       HTML(paste(str1, str2, sep = '<br/>'))
       
-      } else if (input$plotType == "Scatter Plot" &
+      } else if ((input$plotType == "Scatter Plot" || input$plotType == "Density") &
                  input$summaryType == "Median and IQR") {
         
         str1 <- paste("The Median Salary (in Millions) and", input$stat, "for the", 
@@ -234,6 +291,48 @@ function(input, output, session) {
                       "and",
                       format(round(IQR(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
                       ", respectively.")
+        
+        HTML(paste(str1, str2, sep = '<br/>'))
+        
+      } else if (input$plotType == "Box Plot" &
+                 input$summaryType == "Mean and Standard Deviation") {
+        
+        str1 <- paste("The Average ", input$stat2, " for the PG Position is", 
+                      round(mean(select(filter(newData3, Position == "PG"), input$stat2)[[1]]), 2), ", ",
+                      round(mean(select(filter(newData3, Position == "SG"), input$stat2)[[1]]), 2), " for the SG Position, ",
+                      round(mean(select(filter(newData3, Position == "SF"), input$stat2)[[1]]), 2), " for the SF Position, ",
+                      round(mean(select(filter(newData3, Position == "PF"), input$stat2)[[1]]), 2), " for the PF Position, and ",
+                      round(mean(select(filter(newData3, Position == "C"), input$stat2)[[1]]), 2), " for the C Position."
+                      )
+        
+        str2 <- paste("The Standard Deviation of ", input$stat2, " for the PG Position is", 
+                      round(sd(select(filter(newData3, Position == "PG"), input$stat2)[[1]]), 2), ", ",
+                      round(sd(select(filter(newData3, Position == "SG"), input$stat2)[[1]]), 2), " for the SG Position, ",
+                      round(sd(select(filter(newData3, Position == "SF"), input$stat2)[[1]]), 2), " for the SF Position, ",
+                      round(sd(select(filter(newData3, Position == "PF"), input$stat2)[[1]]), 2), " for the PF Position, and ",
+                      round(sd(select(filter(newData3, Position == "C"), input$stat2)[[1]]), 2), " for the C Position."
+        )
+        
+        HTML(paste(str1, str2, sep = '<br/>'))
+        
+      } else if (input$plotType == "Box Plot" &
+                 input$summaryType == "Median and IQR") {
+        
+        str1 <- paste("The Median ", input$stat2, " for the PG Position is", 
+                      round(median(select(filter(newData3, Position == "PG"), input$stat2)[[1]]), 2), ", ",
+                      round(median(select(filter(newData3, Position == "SG"), input$stat2)[[1]]), 2), " for the SG Position, ",
+                      round(median(select(filter(newData3, Position == "SF"), input$stat2)[[1]]), 2), " for the SF Position, ",
+                      round(median(select(filter(newData3, Position == "PF"), input$stat2)[[1]]), 2), " for the PF Position, and ",
+                      round(median(select(filter(newData3, Position == "C"), input$stat2)[[1]]), 2), " for the C Position."
+        )
+        
+        str2 <- paste("The IQR of ", input$stat2, "for the PG Position is", 
+                      round(IQR(select(filter(newData3, Position == "PG"), input$stat2)[[1]]), 2), ", ",
+                      round(IQR(select(filter(newData3, Position == "SG"), input$stat2)[[1]]), 2), " for the SG Position, ",
+                      round(IQR(select(filter(newData3, Position == "SF"), input$stat2)[[1]]), 2), " for the SF Position, ",
+                      round(IQR(select(filter(newData3, Position == "PF"), input$stat2)[[1]]), 2), " for the PF Position, and ",
+                      round(IQR(select(filter(newData3, Position == "C"), input$stat2)[[1]]), 2), " for the C Position."
+        )
         
         HTML(paste(str1, str2, sep = '<br/>'))
         
