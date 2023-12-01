@@ -17,6 +17,12 @@ nba_data <- nba_data %>%
          True_Shooting_Percentage = 'TS%',
          Win_Shares = WS)
 
+my_theme <- theme(plot.title = element_text(hjust = 0.5, size = 22, face = "bold"),
+                  axis.text = element_text(size = 12),
+                  axis.title = element_text(size = 14, face = "bold"),
+                  legend.text = element_text(size=10),
+                  legend.title = element_text(size = 12))
+
 function(input, output, session) {
   
   newVar1 <- reactive({
@@ -29,11 +35,11 @@ function(input, output, session) {
     
     basePlot1 <-
       ggplot(position_filter, aes(x = !!sym(input$stat), y = Salary/1000000)) +
-      geom_point() +
+      geom_point(size = 3) +
       labs(x = paste0(input$stat),
            y = "Salary ($M)",
            title = paste0("2022-23 Salary Based on ", input$stat, " for the ", input$position, " position")) +
-      theme(plot.title = element_text(hjust = 0.5))
+      my_theme
     })
   
   newVar3 <- reactive({
@@ -41,11 +47,11 @@ function(input, output, session) {
     
     basePlot2 <-
       ggplot(position_filter, aes(x = !!sym(input$stat), y = Salary/1000000, color = Age)) +
-      geom_point() +
+      geom_point(size = 3) +
       labs(x = paste0(input$stat),
            y = "Salary ($M)",
            title = paste0("2022-23 Salary Based on ", input$stat, " for the ", input$position, " position")) +
-      theme(plot.title = element_text(hjust = 0.5))
+      my_theme
   })
   
   newVar4 <- reactive({
@@ -62,9 +68,9 @@ function(input, output, session) {
       labs(x = "Player Name",
            y = input$variable,
            title = paste0(input$variable, " By Player On The ", input$team, " Team For The 2022-23 Season")) +
-      theme(plot.title = element_text(hjust = 0.5)) +
       scale_x_discrete(guide = guide_axis(n.dodge=2)) +
-      geom_text(aes(label= !!sym(input$variable)), size = 3, position=position_dodge(width=0.9), vjust=-0.25)
+      geom_text(aes(label= !!sym(input$variable)), size = 5, position=position_dodge(width=0.9), vjust=-0.25) +
+      my_theme
   })
   
   newVar7 <- reactive({
@@ -87,7 +93,7 @@ function(input, output, session) {
       labs(x = paste0(input$stat),
            y = "Density",
            title = paste0("2022-23 Density of ", input$stat, " for the ", input$position, " position")) +
-      theme(plot.title = element_text(hjust = 0.5))
+      my_theme
     
   })
   
@@ -111,7 +117,7 @@ function(input, output, session) {
       labs(x = paste0(input$stat2),
            y = "Value",
            title = paste0("2022-23 Boxplot of ", input$stat2, " by position")) +
-      theme(plot.title = element_text(hjust = 0.5))
+      my_theme
   })
   
   
@@ -187,7 +193,7 @@ function(input, output, session) {
         
       }
     
-    }#, height = 700, width = 1100
+    }, height = 550, width = 1100
     )
   
   getData <- reactive({
@@ -221,118 +227,118 @@ function(input, output, session) {
     if ((input$plotType == "Scatter Plot" || input$plotType == "Density") &
         input$summaryType == "Mean and Standard Deviation") {
       
-      str1 <- paste("The Average Salary (in Millions) and", input$stat, "for the", 
+      str1 <- h4(paste("The Average Salary (in Millions) and", input$stat, "for the", 
                     input$position, "Position is", 
                     dollar(round(mean(position_filter$Salary, na.rm = TRUE), 2)), 
                     "and",
                     format(round(mean(newData[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
-                    ", respectively.")
+                    ", respectively."))
       
-      str2 <- paste("The Standard Deviation for Salary (in Millions) and", input$stat, "for the", 
+      str2 <- h4(paste("The Standard Deviation for Salary (in Millions) and", input$stat, "for the", 
                     input$position, "Position is", 
                     dollar(round(sd(position_filter$Salary, na.rm = TRUE), 2)), 
                     "and",
                     format(round(sd(newData[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
-                    ", respectively.")
+                    ", respectively."))
       
       HTML(paste(str1, str2, sep = '<br/>'))
       
       } else if ((input$plotType == "Scatter Plot" || input$plotType == "Density") &
                  input$summaryType == "Median and IQR") {
         
-        str1 <- paste("The Median Salary (in Millions) and", input$stat, "for the", 
+        str1 <- h4(paste("The Median Salary (in Millions) and", input$stat, "for the", 
                       input$position, "Position is", 
                       dollar(round(median(position_filter$Salary, na.rm = TRUE), 2)), 
                       "and",
-                      format(round(median(newData[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                      format(round(median(newData[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE)),
                       ", respectively.")
         
-        str2 <- paste("The IQR for Salary (in Millions) and", input$stat, "for the", 
+        str2 <- h4(paste("The IQR for Salary (in Millions) and", input$stat, "for the", 
                       input$position, "Position is", 
                       dollar(round(IQR(position_filter$Salary, na.rm = TRUE), 2)), 
                       "and",
                       format(round(IQR(newData[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
-                      ", respectively.")
+                      ", respectively."))
         
         HTML(paste(str1, str2, sep = '<br/>'))  
         
       } else if (input$plotType == "Bar Plot" &
                  input$summaryType == "Mean and Standard Deviation") {
         
-        str1 <- paste("The Average Salary (in Millions) and", input$variable, "for the", 
+        str1 <- h4(paste("The Average Salary (in Millions) and", input$variable, "for the", 
                       input$team, "Team is", 
                       dollar(round(mean(team_filter$Salary, na.rm = TRUE), 2)), 
                       "and",
-                      format(round(mean(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
+                      format(round(mean(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE)),
                       ", respectively.")
         
-        str2 <- paste("The Standard Deviation for Salary (in Millions) and", input$variable, "for the", 
+        str2 <- h4(paste("The Standard Deviation for Salary (in Millions) and", input$variable, "for the", 
                       input$team, "Team is", 
                       dollar(round(sd(team_filter$Salary, na.rm = TRUE), 2)), 
                       "and",
                       format(round(sd(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
-                      ", respectively.")
+                      ", respectively."))
         
         HTML(paste(str1, str2, sep = '<br/>'))
         
       } else if (input$plotType == "Bar Plot" &
                  input$summaryType == "Median and IQR") {
         
-        str1 <- paste("The Median Salary (in Millions) and", input$variable, "for the", 
+        str1 <- h4(paste("The Median Salary (in Millions) and", input$variable, "for the", 
                       input$team, "Team is", 
                       dollar(round(median(team_filter$Salary, na.rm = TRUE), 2)), 
                       "and",
                       format(round(median(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
-                      ", respectively.")
+                      ", respectively."))
         
-        str2 <- paste("The IQR for Salary (in Millions) and", input$variable, "for the", 
+        str2 <- h4(paste("The IQR for Salary (in Millions) and", input$variable, "for the", 
                       input$team, "Team is", 
                       dollar(round(IQR(team_filter$Salary, na.rm = TRUE), 2)), 
                       "and",
                       format(round(IQR(newData2[[1]], na.rm = TRUE), 2), big.mark = ",", scientific = FALSE),
-                      ", respectively.")
+                      ", respectively."))
         
         HTML(paste(str1, str2, sep = '<br/>'))
         
       } else if (input$plotType == "Box Plot" &
                  input$summaryType == "Mean and Standard Deviation") {
         
-        str1 <- paste("The Average ", input$stat2, " for the PG Position is", 
+        str1 <- h4(paste("The Average ", input$stat2, " for the PG Position is", 
                       round(mean(select(filter(newData3, Position == "PG"), input$stat2)[[1]]), 2), ", ",
                       round(mean(select(filter(newData3, Position == "SG"), input$stat2)[[1]]), 2), " for the SG Position, ",
                       round(mean(select(filter(newData3, Position == "SF"), input$stat2)[[1]]), 2), " for the SF Position, ",
                       round(mean(select(filter(newData3, Position == "PF"), input$stat2)[[1]]), 2), " for the PF Position, and ",
                       round(mean(select(filter(newData3, Position == "C"), input$stat2)[[1]]), 2), " for the C Position."
-                      )
+                      ))
         
-        str2 <- paste("The Standard Deviation of ", input$stat2, " for the PG Position is", 
+        str2 <- h4(paste("The Standard Deviation of ", input$stat2, " for the PG Position is", 
                       round(sd(select(filter(newData3, Position == "PG"), input$stat2)[[1]]), 2), ", ",
                       round(sd(select(filter(newData3, Position == "SG"), input$stat2)[[1]]), 2), " for the SG Position, ",
                       round(sd(select(filter(newData3, Position == "SF"), input$stat2)[[1]]), 2), " for the SF Position, ",
                       round(sd(select(filter(newData3, Position == "PF"), input$stat2)[[1]]), 2), " for the PF Position, and ",
                       round(sd(select(filter(newData3, Position == "C"), input$stat2)[[1]]), 2), " for the C Position."
-        )
+                      ))
         
         HTML(paste(str1, str2, sep = '<br/>'))
         
       } else if (input$plotType == "Box Plot" &
                  input$summaryType == "Median and IQR") {
         
-        str1 <- paste("The Median ", input$stat2, " for the PG Position is", 
+        str1 <- h4(paste("The Median ", input$stat2, " for the PG Position is", 
                       round(median(select(filter(newData3, Position == "PG"), input$stat2)[[1]]), 2), ", ",
                       round(median(select(filter(newData3, Position == "SG"), input$stat2)[[1]]), 2), " for the SG Position, ",
                       round(median(select(filter(newData3, Position == "SF"), input$stat2)[[1]]), 2), " for the SF Position, ",
                       round(median(select(filter(newData3, Position == "PF"), input$stat2)[[1]]), 2), " for the PF Position, and ",
                       round(median(select(filter(newData3, Position == "C"), input$stat2)[[1]]), 2), " for the C Position."
-        )
+                      ))
         
-        str2 <- paste("The IQR of ", input$stat2, "for the PG Position is", 
+        str2 <- h4(paste("The IQR of ", input$stat2, "for the PG Position is", 
                       round(IQR(select(filter(newData3, Position == "PG"), input$stat2)[[1]]), 2), ", ",
                       round(IQR(select(filter(newData3, Position == "SG"), input$stat2)[[1]]), 2), " for the SG Position, ",
                       round(IQR(select(filter(newData3, Position == "SF"), input$stat2)[[1]]), 2), " for the SF Position, ",
                       round(IQR(select(filter(newData3, Position == "PF"), input$stat2)[[1]]), 2), " for the PF Position, and ",
                       round(IQR(select(filter(newData3, Position == "C"), input$stat2)[[1]]), 2), " for the C Position."
-        )
+                      ))
         
         HTML(paste(str1, str2, sep = '<br/>'))
         
@@ -350,7 +356,7 @@ function(input, output, session) {
         mutate(Salary = dollar(Salary))
     }
 
-  })
+  }, height = 550, width = 1100)
 
 }
 

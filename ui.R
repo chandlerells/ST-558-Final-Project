@@ -1,22 +1,23 @@
 library(shiny)
 library(tidyverse)
+library(shinyWidgets)
 
 # Define UI for application that draws a histogram
 fluidPage(
+  setBackgroundColor("bisque"),
   tabsetPanel(
     tabPanel("Data Exploration", fluid = TRUE,
-             titlePanel("Exploratory Data Analysis"),
+             titlePanel(strong("Exploratory Data Analysis")),
              sidebarLayout(
                sidebarPanel(
                  selectInput("plotType", 
-                             h3("Select Plot Type"),
+                             h3(strong("Select Plot Type")),
                              choices = c("Scatter Plot", "Bar Plot",
                                          "Density", "Box Plot"),
                              ),
                  conditionalPanel(condition = "input.plotType == 'Scatter Plot' || input.plotType == 'Density'",
                                   selectInput("position",
                                               h4("Select Position"),
-                                              selected = unique(nba_data$Position)[1],
                                               choices = as.factor(nba_data$Position)),
                                   selectInput("stat",
                                               h4("Select Statistic"),
@@ -51,7 +52,7 @@ fluidPage(
                                   ),
                  
                  selectInput("summaryType", 
-                             h3("Select Summary Type"),
+                             h3(strong(("Select Summary Type"))),
                              choices = c("Mean and Standard Deviation", 
                                          "Median and IQR")
                              ),
@@ -65,7 +66,16 @@ fluidPage(
                  ),
                mainPanel(
                  plotOutput("plot"),
+                 br(),
+                 br(),
+                 br(),
+                 br(),
+                 br(),
+                 br(),
+                 br(),
+                 br(),
                  htmlOutput("info"),
+                 br(),
                  tableOutput("table")
                  )
                )
