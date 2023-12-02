@@ -3,6 +3,7 @@ library(shiny)
 library(tidyverse)
 library(ggrepel)
 library(scales)
+library(caret)
 #read in data
 nba_data <- read_csv("nba_2022-23_all_stats_with_salary.csv")
 #rename columns for interpretability that will be used as inputs for the user 
@@ -364,6 +365,147 @@ function(input, output, session) {
 #change size of table
   }, height = 550, width = 1100)
 
+  observeEvent(input$rfVars,  {
+    updateSliderInput(session = session, inputId = "mtry", max = length(input$rfVars))
+  })
+
+  
+  #models <- reactive({
+    #create index to split on
+    #index <- createDataPartition(nba_data$Salary, 
+                                 #p = input$split, 
+                                 #list = FALSE)
+    #create training and test set by indexing index object
+    #train_set <- nba_data[index, ]
+    #test_set <- nba_data[-index, ]
+  #})
+  
+  
+  #output$mlr2<- renderPrint({
+    
+    #train_set <- models()
+    
+    #mlr_train_set <- train_set %>%
+      #select(Salary, !!!input$mlrVars)
+    
+    #mlr_test_set <- test_set %>%
+      #select(Salary, !!!input$mlrVars)
+    
+    #train the model with proper method
+    #mlr.fit <- train(Salary ~ .,
+                     #data = mlr_train_set,
+                     #method = 'lm',
+                     #na.action = na.pass,
+                     #trControl = trainControl(method = 'cv',
+                                              #number = 5))
+    
+    #summary(mlr.fit)
+    
+  #})
+  
+  #output$rf <- renderPrint({
+    
+    #train_set <- models()
+    
+    #if(input$cvChoice == "Cross-Validation") {
+      #set up the train control parameters we want
+      #tr <- trainControl(method = 'cv',
+                         #number = as.numeric(input$cv))
+      
+    #} else {
+      #set up the train control parameters we want
+      #tr <- trainControl(method = 'repeatedcv',
+                        # number = as.numeric(input$rcv),
+                         #repeats = as.numeric(input$rcv))
+    #}
+    
+    #rf_train_set <- train_set %>%
+      #select(Salary, !!!input$rfVars)
+    
+    #rf_test_set <- test_set %>%
+      #select(Salary, !!!input$rfVars)
+    
+    #train the model with proper method
+    #rf.fit <- train(Salary ~ .,
+                     #data = rf_train_set,
+                     #method = 'rf',
+                     #na.action = na.pass,
+                     #trControl = tr)
+    
+    #summary(rf.fit)
+    
+  #})
+  
+  
+  mlr <- eventReactive(input$fit, {
+    
+    index <- createDataPartition(nba_data$Salary, 
+                                 p = input$split, 
+                                 list = FALSE)
+    #create training and test set by indexing index object
+    train_set <- nba_data[index, ]
+    test_set <- nba_data[-index, ]
+    
+    mlr_train_set <- train_set %>%
+      select(Salary, !!!input$mlrVars)
+    
+    mlr.fit <- train(Salary ~ .,
+                     data = mlr_train_set,
+                     method = 'lm',
+                     na.action = na.pass,
+                     trControl = trainControl(method = 'cv',
+                                              number = 5))
+    
+    return(mlr.fit)
+    
+  })
+  
+  rf <- eventReactive(input$fit, {
+    
+    index <- createDataPartition(nba_data$Salary, 
+                                 p = input$split, 
+                                 list = FALSE)
+    #create training and test set by indexing index object
+    train_set <- nba_data[index, ]
+    test_set <- nba_data[-index, ]
+    
+    rf_train_set <- train_set %>%
+      select(Salary, !!!input$rfVars)
+    
+    if(input$cvChoice == "Cross-Validation") {
+      #set up the train control parameters we want
+      tr <- trainControl(method = 'cv',
+                         number = input$cv)
+    
+    } else {
+      #set up the train control parameters we want
+      tr <- trainControl(method = 'repeatedcv',
+                         number = input$rcv,
+                         repeats = input$rcv2)
+    }
+    
+    grid <- expand.grid(mtry = seq(from = input$mtry[1], to = input$mtry[2], by = 1))
+    
+    rf.fit <- train(Salary ~ .,
+                    data = rf_train_set,
+                    method = 'rf',
+                    na.action = na.pass,
+                    tuneGrid = grid,
+                    trControl = tr
+                    )
+    
+    return(rf.fit)
+    
+  })
+  
+  output$mlrSum <- renderPrint({
+    summary(mlr())
+  })
+  
+  output$rfSum <- renderPrint({
+    rf()
+  })
+  
 }
 
 

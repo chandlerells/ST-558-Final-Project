@@ -148,6 +148,80 @@ fluidPage(
                  tableOutput("table")
                  )
                )
-             )
+             ),
+    
+    tabPanel("Modeling", fluid = TRUE,
+             tabsetPanel(
+               tabPanel("Modeling Info", fluid = TRUE,
+                        #set up sidebar layout
+                        sidebarLayout(
+                          sidebarPanel(
+                            sliderInput("split", "Select train/test split",
+                                        min = 0, max = 1, value = .8),
+                            varSelectInput("mlrVars", "Select Predictor Variables to use in the Multiple Linear Regression Model", 
+                                           data = nba_data[, 4:52],
+                                           selected = c("Age", "Points_Per_Game", "Player_Efficiency_Rating", "True_Shooting_Percentage", "Win_Shares"),
+                                           multiple = TRUE),
+                            varSelectInput("rfVars", "Select Predictor Variables to use in the Random Forest Model", 
+                                           data = nba_data[, 4:52],
+                                           selected = c("Position", "Age", "Team", "Points_Per_Game", "Player_Efficiency_Rating", "True_Shooting_Percentage", "Win_Shares"),
+                                           multiple = TRUE),
+                            sliderInput("mtry", "Select Tuning Parameter Range for the Number of Predictors Used at Each Split in the Random Forest Model",
+                                        min = 1,
+                                        max = 7,
+                                        value = c(1,6),
+                                        step = 1),
+                            selectInput("cvChoice",
+                                        h4("Select Tuning Methedology for Random Forest Model"),
+                                        choices = c("Cross-Validation", "Repeated Cross-Validation")),
+                            conditionalPanel(condition = "input.cvChoice == 'Cross-Validation'",
+                                             sliderInput("cv",
+                                                         h6("How Many Folds?"),
+                                                         min = 3,
+                                                         max = 7,
+                                                         value = 5,
+                                                         step = 1)),
+                            conditionalPanel(condition = "input.cvChoice == 'Repeated Cross-Validation'",
+                                             sliderInput("rcv",
+                                                         h6("How Many Folds?"),
+                                                         min = 3,
+                                                         max = 7,
+                                                         value = 5,
+                                                         step = 1),
+                                             sliderInput("rcv2",
+                                                         h6("How Many Folds?"),
+                                                         min = 2,
+                                                         max = 5,
+                                                         value = 3,
+                                                         step = 1)),
+                            actionButton("fit", "Fit Models")
+                            
+
+                          ),
+                          mainPanel(
+                            verbatimTextOutput("rfSum")
+                          ) 
+                        )
+
+),
+               tabPanel("Model Fitting", fluid = TRUE,
+                        
+                        
+                        
+                        
+                        
+                        ),
+               tabPanel("Prediction", fluid = TRUE,
+                        
+                        
+                        
+                        
+                        
+                        
+                        )
+               )
     )
   )
+)
+  
+  

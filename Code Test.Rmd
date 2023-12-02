@@ -120,5 +120,53 @@ format(round(mean(select(filter(newData3, Position == "PG"), Minutes_Per_Game[[1
 round(mean(select(filter(newData3, Position == "PG"), Minutes_Per_Game)[[1]]), 2)
 ```
 
+```{r}
+    index <- createDataPartition(nba_data$Salary, 
+                                 p = .8, 
+                                 list = FALSE)
+    #create training and test set by indexing index object
+    train_set <- nba_data[index, ]
+    test_set <- nba_data[-index, ]
+    train_set
+```
+
+Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Made_Per_Game
+```{r}
+    index <- createDataPartition(nba_data$Salary, 
+                                 p = 0.8, 
+                                 list = FALSE)
+    #create training and test set by indexing index object
+    train_set <- nba_data[index, ]
+    test_set <- nba_data[-index, ]
+    
+    rf_train_set <- train_set %>%
+      select(Salary, Team, Position, Age, Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Made_Per_Game)
+    
+    test <- "Cross-Validation"
+    
+    if(test == "Cross-Validation") {
+      #set up the train control parameters we want
+      tr <- trainControl(method = 'cv',
+                         number = 5)
+    
+    } else {
+      #set up the train control parameters we want
+      tr <- trainControl(method = 'repeatedcv',
+                         number = 5,
+                         repeats = 2)
+    }
+    
+    grid <- expand.grid(mtry = seq(from = 1, to = 4, by = 1))
+    
+    rf.fit <- train(Salary ~ .,
+                    data = rf_train_set,
+                    method = 'rf',
+                    na.action = na.pass,
+                    tuneGrid = grid,
+                    trControl = tr
+                    )
+    
+    summary(rf.fit)
+```
 
 
