@@ -142,6 +142,9 @@ Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Mad
     rf_train_set <- train_set %>%
       select(Salary, Team, Position, Age, Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Made_Per_Game)
     
+    rf_test_set <- test_set %>%
+      select(Salary, Team, Position, Age, Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Made_Per_Game)
+    
     test <- "Cross-Validation"
     
     if(test == "Cross-Validation") {
@@ -160,13 +163,58 @@ Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Mad
     
     rf.fit <- train(Salary ~ .,
                     data = rf_train_set,
-                    method = 'rf',
+                    method = 'lm',
                     na.action = na.pass,
-                    tuneGrid = grid,
                     trControl = tr
                     )
+    library(randomForest)
+    plot(varImp(rf.fit))
+    plot(rf.fit)
     
-    summary(rf.fit)
+    
+    index <- createDataPartition(nba_data$Salary, 
+                                 p = input$split, 
+                                 list = FALSE)
+
+    test_set <- nba_data[-index, ]
+    
+    mlr_test_set <- test_set %>%
+      select(Salary, !!!input$mlrVars)
+    
+    preds <- predict(rf.fit, 
+                     newdata = rf_test_set)
+    
+    test <-postResample(preds, rf_test_set$Salary)
+    
+    paste("test", test)
+
 ```
 
+```{r}
+[[1]]
+Position
+
+[[2]]
+Age
+
+[[3]]
+Team
+
+[[4]]
+Points_Per_Game
+
+[[5]]
+Player_Efficiency_Rating
+
+[[6]]
+True_Shooting_Percentage
+
+[[7]]
+Win_Shares
+```
+
+```{r}
+listy <- list("Position", "Age", "Team")
+listy
+```
 

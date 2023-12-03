@@ -2,7 +2,7 @@
 library(shiny)
 library(tidyverse)
 library(shinyWidgets)
-
+library(mathjaxr)
 # Define UI for application
 fluidPage(
   #set background color of app
@@ -153,6 +153,23 @@ fluidPage(
     tabPanel("Modeling", fluid = TRUE,
              tabsetPanel(
                tabPanel("Modeling Info", fluid = TRUE,
+                        h4(strong("Multiple Linear Regression and Random Forest Discussion")),
+                        p("Below is a description of each of the modeling approaches and the benefits/drawbacks of each."),
+                        br(),
+                        p("* ", strong("Multiple Linear Regression"), ": Multiple Linear Regression (MLR) is a simple supervised learning tool for modeling a quantitative response. One of the main benefits of MLR is that it is much simpler compared to other modern techniques and easy to interpret. A MLR model has the form",
+                          " where Yi is a quantitative response, xi1, xip are predictor variables, and ei is the unobserved random error. This model can be extended in many ways by including higher order polynomial terms and interaction effects between the predictors. B0 is the intercept, the coefficients Bj = 1,...p are coefficients associated with predictor Xij. The value of Bj indicates the strength and direction of the linear relationship between xij and Yi and can be interpreted as the rate of change in the mean response due to a one unit increase in the j-th predictor while keeping the other predictors fixed. The coefficients are true unknown values that need to be estimated from the data. Upon estimation, the resulting equation becomes, EQUATION, which is used to make predictions. A common estimation procedure for the regression coefficients is the least squares technique, which first starts by calculating the residual sum of squares, which is the sum of all the true observed values minus the corresponding predicted values (residuals), squared. The coefficients are then estimated by minimizing the sum of squared residuals, EQUATION, with respect to Bj's. The major drawbacks of the MLR model are the numerous statistical assumptions made on the data and the lack of predictive power compared to other models. Specifically, this model assumes a linear relationship between the response and predictors, constant variance in the errors, and the errors being normally distributed. There can be a lack of performance if one of these assumptions are violated, or if there exists influential points and multicollinearity among the predictors."
+                          
+                          ), 
+                        #withMathJax(
+                          #helpText('\\(Y = \\hat{\\beta}_0 + \\hat{\\beta}_1X\\)'),
+                          #helpText('\\(\\hat{y}\\ = \\hat{\\beta}_0 + \\hat{\\beta}_1x\\)'),
+                        p(),
+                        br(),
+                        p("* ", strong("Random Forest"), ": This description will assume a regression task, but the concept is similar to a classification task. Random forest builds upon bagging, which uses bootstrap aggregation to fit many trees and creates a final prediction using an average of the predicted values from all of the trees. Random forest models take this one step further and for each tree at each split, only a subset of predictors are used. This can improve prediction over a single tree fit and over bagged trees by reducing the overall variance of the predictions. A single tree fit is highly variable, where a small change in the data could result in a completely different tree fit. Bagging attempts to improve this by taking an average of many predicted values from many trees, since the variance of an average with trees that are independent and identically distributed is lower than the variance of one single tree fit. While bagging generally reduces the variance and overall test error, these trees are highly correlated since if there is one or two strong predictors that explain the response, they will most likely dominate all the tree fits, having similar splits. This means the average doesn't reduce the variance as much. Random forest corrects this correlation between the trees by only looking at a subset of predictors at the splits. The goal of this is to reduce the correlation between the trees which in hope would reduce the variance of the average predicted value and lower the overall test error. As you can see, the major benefit to a random forest model is its predictive power. Random forests are also able to utilize different methodologies to look at variable importance measures, which can be helpful for variable selection, and do not make statistical assumptions. The major drawbacks are the lack of interpretability and potentially high computation time.")
+                        
+                        
+),
+               tabPanel("Model Fitting", fluid = TRUE,
                         #set up sidebar layout
                         sidebarLayout(
                           sidebarPanel(
@@ -196,25 +213,38 @@ fluidPage(
                                                          step = 1)),
                             actionButton("fit", "Fit Models")
                             
-
+                            
                           ),
                           mainPanel(
-                            verbatimTextOutput("rfSum")
+                            h5(strong("Multiple Linear Regression Model Performance on the Test Set")),
+                            verbatimTextOutput("mlrPred"),
+                            h5(strong("Multiple Linear Regression Model Performance on the Training Set")),
+                            verbatimTextOutput("mlrSum"),
+                            h5(strong("Random Forest Model Performance on the Test Set")),
+                            verbatimTextOutput("rfPred"),
+                            h5(strong("Random Forest Model Performance on the Training Set")),
+                            verbatimTextOutput("rfSum"),
+                            h5(strong("Random Forest Model Variable Importance")),
+                            plotOutput("rfPlot")
                           ) 
                         )
-
-),
-               tabPanel("Model Fitting", fluid = TRUE,
-                        
-                        
-                        
-                        
                         
                         ),
                tabPanel("Prediction", fluid = TRUE,
-                        
-                        
-                        
+                        #selectInput("modelPred",
+                                    #h4("Which Model Would you like to use for Predictions?"),
+                                    #selected = "Both",
+                                    #choices = c("Multiple Linear Regression", "Random Forest", "Both"),
+                        #conditionalPanel(condition = "input.modelPred == 'Both'",
+                          
+                        #),
+                        #conditionalPanel(condition = "input.modelPred == 'Multiple Linear Regression'",
+                                         
+                        #),
+                        #conditionalPanel(condition = "input.modelPred == 'Random Forest'",
+                                         
+                        #)
+                        uiOutput("sliders")
                         
                         
                         

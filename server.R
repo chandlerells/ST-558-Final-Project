@@ -506,6 +506,48 @@ function(input, output, session) {
     rf()
   })
   
+  output$rfPlot <- renderPlot({
+    plot(varImp(rf()))
+  })
+  
+  output$mlrPred <- renderPrint({
+    
+    index <- createDataPartition(nba_data$Salary, 
+                                 p = input$split, 
+                                 list = FALSE)
+
+    test_set <- nba_data[-index, ]
+    
+    mlr_test_set <- test_set %>%
+      select(Salary, !!!input$mlrVars)
+    
+    preds <- predict(mlr(), 
+                     newdata = mlr_test_set)
+    
+    postResample(preds, mlr_test_set$Salary)
+  })
+  
+  output$rfPred <- renderPrint({
+    
+    index <- createDataPartition(nba_data$Salary, 
+                                 p = input$split, 
+                                 list = FALSE)
+    
+    test_set <- nba_data[-index, ]
+    
+    rf_test_set <- test_set %>%
+      select(Salary, !!!input$rfVars)
+    
+    preds <- predict(rf(), 
+                     newdata = rf_test_set)
+    
+    postResample(preds, rf_test_set$Salary)
+  })
+  
+  
+  
+  
+  
 }
 
 
