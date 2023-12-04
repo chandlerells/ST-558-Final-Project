@@ -140,10 +140,19 @@ Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Mad
     test_set <- nba_data[-index, ]
     
     rf_train_set <- train_set %>%
-      select(Salary, Team, Position, Age, Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Made_Per_Game)
+      select(Salary, Team, Position, Age, Points_Per_Game, Player_Efficiency_Rating, True_Shooting_Percentage, Win_Shares) %>%
+      drop_na()
+    
+    na.omit(rf_train_set)
+    
+    which(is.na(rf_train_set))
+    
+    which(is.na(rf_test_set))
     
     rf_test_set <- test_set %>%
-      select(Salary, Team, Position, Age, Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Made_Per_Game)
+      select(Salary, Team, Position, Age, Points_Per_Game, Player_Efficiency_Rating, True_Shooting_Percentage, Win_Shares)
+    
+    rf_train_set %>% drop_na()
     
     test <- "Cross-Validation"
     
@@ -161,13 +170,17 @@ Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Mad
     
     grid <- expand.grid(mtry = seq(from = 1, to = 4, by = 1))
     
-    rf.fit <- train(Salary ~ .,
+    (rf.fit <- train(Salary ~ .,
                     data = rf_train_set,
                     method = 'lm',
                     na.action = na.pass,
                     trControl = tr
-                    )
-    library(randomForest)
+                    ))
+```
+
+
+```{r}
+library(randomForest)
     plot(varImp(rf.fit))
     plot(rf.fit)
     
@@ -187,8 +200,8 @@ Points_Per_Game, Minutes_Per_Game, Assists_Per_Game, Win_Shares, Field_Goals_Mad
     test <-postResample(preds, rf_test_set$Salary)
     
     paste("test", test)
-
 ```
+
 
 ```{r}
 [[1]]

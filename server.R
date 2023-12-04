@@ -447,12 +447,12 @@ function(input, output, session) {
     test_set <- nba_data[-index, ]
     
     mlr_train_set <- train_set %>%
-      select(Salary, !!!input$mlrVars)
+      select(Salary, !!!input$mlrVars) %>%
+      drop_na()
     
     mlr.fit <- train(Salary ~ .,
                      data = mlr_train_set,
                      method = 'lm',
-                     na.action = na.pass,
                      trControl = trainControl(method = 'cv',
                                               number = 5))
     
@@ -470,7 +470,9 @@ function(input, output, session) {
     test_set <- nba_data[-index, ]
     
     rf_train_set <- train_set %>%
-      select(Salary, !!!input$rfVars)
+      select(Salary, !!!input$rfVars) %>%
+      drop_na()
+    
     
     if(input$cvChoice == "Cross-Validation") {
       #set up the train control parameters we want
@@ -489,7 +491,6 @@ function(input, output, session) {
     rf.fit <- train(Salary ~ .,
                     data = rf_train_set,
                     method = 'rf',
-                    na.action = na.pass,
                     tuneGrid = grid,
                     trControl = tr
                     )
@@ -519,7 +520,8 @@ function(input, output, session) {
     test_set <- nba_data[-index, ]
     
     mlr_test_set <- test_set %>%
-      select(Salary, !!!input$mlrVars)
+      select(Salary, !!!input$mlrVars) %>%
+      drop_na()
     
     preds <- predict(mlr(), 
                      newdata = mlr_test_set)
@@ -536,7 +538,8 @@ function(input, output, session) {
     test_set <- nba_data[-index, ]
     
     rf_test_set <- test_set %>%
-      select(Salary, !!!input$rfVars)
+      select(Salary, !!!input$rfVars) %>%
+      drop_na()
     
     preds <- predict(rf(), 
                      newdata = rf_test_set)
