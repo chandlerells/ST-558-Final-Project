@@ -547,7 +547,95 @@ function(input, output, session) {
     postResample(preds, rf_test_set$Salary)
   })
   
+  output$mlrPreds <- renderUI({
+    
+    filtered <- nba_data %>%
+      select(!!!input$mlrVars) %>%
+      drop_na()
+    
+    lapply(colnames(filtered), FUN = function(x) {
+      
+      if(class(filtered[[x]]) %in% c("factor", "character")) {
+        
+        selectInput(
+          inputId = paste("mlr", x, sep = "_"),
+          label = paste("Select New Value for",x),
+          choices = as.factor(unique(filtered[[x]])))
+        
+      } else if (class(filtered[[x]]) %in% c("integer", "numeric")) {
+        
+        numericInput(
+          inputId =  paste("mlr", x, sep = "_"),
+          label = paste("Enter Numeric Value for",x),
+          value = round(mean(filtered[[x]]),2),
+          min = 0,
+          max = round(max(filtered[[x]]),2))
+        
+      }
+      
+    })
+  })
   
+  output$rfPreds <- renderUI({
+    
+    filtered <- nba_data %>%
+      select(!!!input$rfVars) %>%
+      drop_na()
+    
+    lapply(colnames(filtered), FUN = function(x) {
+      
+      if(class(filtered[[x]]) %in% c("factor", "character")) {
+        
+        selectInput(
+          inputId = paste("rf", x, sep = "_"),
+          label = paste("Select New Value for",x),
+          choices = as.factor(unique(filtered[[x]])))
+        
+      } else if (class(filtered[[x]]) %in% c("integer", "numeric")) {
+        
+        numericInput(
+          inputId =  paste("rf", x, sep = "_"),
+          label = paste("Enter Numeric Value for",x),
+          value = round(mean(filtered[[x]]),2),
+          min = 0,
+          max = round(max(filtered[[x]]),2))
+        
+      }
+      
+    })
+  })
+  
+  #observeEvent(input$debug, {
+    #browser()
+  #})
+  
+  output$hold <- renderPrint({
+
+    filtered <- nba_data %>%
+      select(!!!input$mlrVars) %>%
+      drop_na()
+    
+    names_ <- colnames(filtered)
+    
+    inputs_ <- paste("mlr", names_, sep = "_")
+    
+    listy <- lapply(inputs_, FUN = function(x){
+      
+      colname_ <- sub('.*_', '', x)
+      
+      df <- data.frame(colname_,
+                       value = get(paste0("input$",x)))
+    }
+    )
+    
+    df_ <- bind_rows(listy)
+    
+    newData_ <- pivot_wider(df_, names_from = colname_, values_from = value)
+    
+    predict(mlr(), 
+            newdata = newData_)
+    
+  })
   
   
   

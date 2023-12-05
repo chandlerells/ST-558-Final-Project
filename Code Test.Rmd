@@ -231,3 +231,68 @@ listy <- list("Position", "Age", "Team")
 listy
 ```
 
+
+```{r}
+library(tidyverse)
+filtered <- nba_data %>%
+      select(Team, Position, Age, Points_Per_Game, Player_Efficiency_Rating, True_Shooting_Percentage, Win_Shares) %>%
+      drop_na()
+
+lapply(colnames(filtered), FUN = function(x) {
+  
+  if(class(filtered[[x]]) %in% c("factor", "character")) {
+    print("test1")
+  } else if (class(filtered[[x]]) %in% c("integer", "numeric")) {
+    
+    print("test2")
+    
+  }
+})
+test <- 2
+
+names_ <- colnames(filtered)
+names_    
+inputs_ <- paste("mlr", names_, sep = "_")
+inputs_
+test2 <- lapply(inputs_, FUN = function(x){
+  
+  colname_ <- sub('.*_', '', x)
+  #print(colname_)
+  
+  df <- data.frame(colname_,
+                   value = get('test'))
+    
+})
+test2
+test3 <- bind_rows(test2)
+pivot_wider(test3, names_from = colname_, values_from = value)
+```
+
+
+```{r}
+filtered <- nba_data %>%
+      select(!!!input$mlrVars) %>%
+      drop_na()
+    
+    names_ <- colnames(filtered)
+    
+    inputs_ <- paste("mlr", names_, sep = "_")
+    
+    listy <- lapply(inputs_, FUN = function(x){
+      
+      colname_ <- sub('.*_', '', x)
+      
+      df <- data.frame(colname_,
+                       value = get(paste0("input$",x)))
+    }
+    )
+    
+    df_ <- bind_rows(listy)
+    
+    newData_ <- pivot_wider(df_, names_from = colname_, values_from = value)
+    
+    predict(mlr(), 
+            newdata = newData_)
+    
+```
+

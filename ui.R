@@ -228,25 +228,26 @@ fluidPage(
                         
                         ),
                tabPanel("Prediction", fluid = TRUE,
-                        #selectInput("modelPred",
-                                    #h4("Which Model Would you like to use for Predictions?"),
-                                    #selected = "Both",
-                                    #choices = c("Multiple Linear Regression", "Random Forest", "Both"),
-                        #conditionalPanel(condition = "input.modelPred == 'Both'",
+                        sidebarLayout(
+                          sidebarPanel(
+                            h3("Enter New Observations for selected Multiple Linear Regression Model Predictors"),
+                            #actionButton("debug", "debug"),
+                            uiOutput("mlrPreds"),
+                            h3("Enter New Observations for selected Random Forest Model Predictors"),
+                            uiOutput("rfPreds")
+                            
+                            ),
+                          mainPanel(
+                            verbatimTextOutput("hold")
+                            
+                            )
                           
-                        #),
-                        #conditionalPanel(condition = "input.modelPred == 'Multiple Linear Regression'",
-                                         
-                        #),
-                        #conditionalPanel(condition = "input.modelPred == 'Random Forest'",
-                                         
-                        #)
-                        uiOutput("sliders")
-                        
-                        
+                          )
                         
                         )
-               )
+                        
+                        
+                       )     
     )
   )
 )
