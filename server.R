@@ -526,7 +526,8 @@ function(input, output, session) {
     preds <- predict(mlr(), 
                      newdata = mlr_test_set)
     
-    postResample(preds, mlr_test_set$Salary)
+    #postResample(preds, mlr_test_set$Salary)
+    mlr_test_set
   })
   
   output$rfPred <- renderPrint({
@@ -547,7 +548,7 @@ function(input, output, session) {
     postResample(preds, rf_test_set$Salary)
   })
   
-  output$mlrPreds <- renderUI({
+  output$mlrBoxes <- renderUI({
     
     filtered <- nba_data %>%
       select(!!!input$mlrVars) %>%
@@ -558,14 +559,14 @@ function(input, output, session) {
       if(class(filtered[[x]]) %in% c("factor", "character")) {
         
         selectInput(
-          inputId = paste("mlr", x, sep = "_"),
+          inputId = paste("mlr", x, sep = "-"),
           label = paste("Select New Value for",x),
           choices = as.factor(unique(filtered[[x]])))
         
       } else if (class(filtered[[x]]) %in% c("integer", "numeric")) {
         
         numericInput(
-          inputId =  paste("mlr", x, sep = "_"),
+          inputId =  paste("mlr", x, sep = "-"),
           label = paste("Enter Numeric Value for",x),
           value = round(mean(filtered[[x]]),2),
           min = 0,
@@ -576,7 +577,7 @@ function(input, output, session) {
     })
   })
   
-  output$rfPreds <- renderUI({
+  output$rfBoxes <- renderUI({
     
     filtered <- nba_data %>%
       select(!!!input$rfVars) %>%
@@ -587,14 +588,14 @@ function(input, output, session) {
       if(class(filtered[[x]]) %in% c("factor", "character")) {
         
         selectInput(
-          inputId = paste("rf", x, sep = "_"),
+          inputId = paste("rf", x, sep = "-"),
           label = paste("Select New Value for",x),
           choices = as.factor(unique(filtered[[x]])))
         
       } else if (class(filtered[[x]]) %in% c("integer", "numeric")) {
         
         numericInput(
-          inputId =  paste("rf", x, sep = "_"),
+          inputId =  paste("rf", x, sep = "-"),
           label = paste("Enter Numeric Value for",x),
           value = round(mean(filtered[[x]]),2),
           min = 0,
@@ -605,11 +606,8 @@ function(input, output, session) {
     })
   })
   
-  #observeEvent(input$debug, {
-    #browser()
-  #})
   
-  output$hold <- renderPrint({
+  output$mlrNewPred <- renderTable({
 
     filtered <- nba_data %>%
       select(!!!input$mlrVars) %>%
@@ -617,27 +615,61 @@ function(input, output, session) {
     
     names_ <- colnames(filtered)
     
-    inputs_ <- paste("mlr", names_, sep = "_")
+    inputs_ <- paste("mlr", names_, sep = "-")
     
     listy <- lapply(inputs_, FUN = function(x){
       
-      colname_ <- sub('.*_', '', x)
+      colname_ <- sub('.*-', '', x)
       
       df <- data.frame(colname_,
-                       value = get(paste0("input$",x)))
+                       value = input[[x]])
+      
+      df <- pivot_wider(df, names_from = colname_, values_from = value)
     }
     )
     
-    df_ <- bind_rows(listy)
+    df_ <- bind_cols(listy)
     
-    newData_ <- pivot_wider(df_, names_from = colname_, values_from = value)
+    pred <- predict(mlr(), 
+                     newdata = df_)
     
-    predict(mlr(), 
-            newdata = newData_)
+    data.frame(Salary_Prediction = dollar(pred))
     
   })
   
+  output$rfNewPred <- renderTable({
+    
+    filtered <- nba_data %>%
+      select(!!!input$rfVars) %>%
+      drop_na()
+    
+    names_ <- colnames(filtered)
+    
+    inputs_ <- paste("rf", names_, sep = "-")
+    
+    listy <- lapply(inputs_, FUN = function(x){
+      
+      colname_ <- sub('.*-', '', x)
+      
+      df <- data.frame(colname_,
+                       value = input[[x]])
+      
+      df <- pivot_wider(df, names_from = colname_, values_from = value)
+    }
+    )
+    
+    df_ <- bind_cols(listy)
+    
+    pred <- predict(rf(), 
+                    newdata = df_)
+    
+    data.frame(Salary_Prediction = dollar(pred))
+    
+  })
   
+  observeEvent(input$debug, {
+    browser()
+  })
   
 }
 

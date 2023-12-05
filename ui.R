@@ -231,14 +231,17 @@ fluidPage(
                         sidebarLayout(
                           sidebarPanel(
                             h3("Enter New Observations for selected Multiple Linear Regression Model Predictors"),
-                            #actionButton("debug", "debug"),
-                            uiOutput("mlrPreds"),
+                            actionButton("debug", "debug"),
+                            uiOutput("mlrBoxes"),
                             h3("Enter New Observations for selected Random Forest Model Predictors"),
-                            uiOutput("rfPreds")
+                            uiOutput("rfBoxes")
                             
                             ),
                           mainPanel(
-                            verbatimTextOutput("hold")
+                            h3("Predicted Salary Using Multiple Linear Regression Model Based on Provided Inputs"),
+                            h3(strong(tableOutput("mlrNewPred"))),
+                            h3("Predicted Salary Using Random Forest Model Based on Provided Inputs"),
+                            h3(strong(tableOutput("rfNewPred")))
                             
                             )
                           

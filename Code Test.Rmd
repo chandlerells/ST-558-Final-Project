@@ -271,13 +271,18 @@ pivot_wider(test3, names_from = colname_, values_from = value)
 
 ```{r}
 filtered <- nba_data %>%
-      select(!!!input$mlrVars) %>%
+      select(Team, Age) %>%
       drop_na()
     
     names_ <- colnames(filtered)
     
     inputs_ <- paste("mlr", names_, sep = "_")
-    
+    listy <- list()
+    listy <- list(pivot_wider(data.frame(colname_ = "Team",
+                             value = "GSW"), names_from = colname_, values_from = value),
+              pivot_wider(data.frame(colname_ = "Age",
+                             value = 34), names_from = colname_, values_from = value))
+    listy
     listy <- lapply(inputs_, FUN = function(x){
       
       colname_ <- sub('.*_', '', x)
@@ -286,13 +291,18 @@ filtered <- nba_data %>%
                        value = get(paste0("input$",x)))
     }
     )
-    
-    df_ <- bind_rows(listy)
-    
+    listy
+    df_ <- bind_cols(listy)
+    df_
     newData_ <- pivot_wider(df_, names_from = colname_, values_from = value)
     
     predict(mlr(), 
             newdata = newData_)
     
+    test <- data.frame(colname_ = "Team",
+                             value = "GSW")
+    pivot_wider(data.frame(colname_ = "Team",
+                             value = "GSW"), names_from = colname_, values_from = value)
 ```
+
 
