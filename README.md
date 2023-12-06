@@ -6,7 +6,7 @@ The `purpose` of this app is to explore and model `NBA data from the 2022-23 sea
 
 ## List of packages needed to run the app
 
-The following packages are need to run the app:  
+The following packages are needed to run the app:  
 
 * `shiny`
 * `tidyverse`
