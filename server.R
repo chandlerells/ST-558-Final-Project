@@ -118,7 +118,6 @@ function(input, output, session) {
            title = paste0("2022-23 Boxplot of ", input$stat2, " by position")) +
       my_theme
   })
-  
   #now that we have the proper base plots and filtered data, create plot object to use on the ui
   output$plot <- renderPlot({
     #pull in various filtered data objects
@@ -353,324 +352,257 @@ function(input, output, session) {
         select(`Player Name`, Salary) %>%
         top_n(as.integer(input$number)) %>%
         mutate(Salary = dollar(Salary))
-      
     } else if (input$top2 == TRUE) {
       #select only the player name, salary column, and top earners based on the number specified by the user
       nba_data %>% 
         select(`Player Name`, Salary) %>%
         top_n(as.integer(input$number2)) %>%
         mutate(Salary = dollar(Salary))
-      
     }
 #change size of table
   }, height = 550, width = 1100)
-
+  #every time the user selects new predictors for the rf model, adjust the max number for mtry tuning so that it's never greater than the number of predictors selected
   observeEvent(input$rfVars,  {
     updateSliderInput(session = session, inputId = "mtry", max = length(input$rfVars))
   })
-
-  
-  #models <- reactive({
-    #create index to split on
-    #index <- createDataPartition(nba_data$Salary, 
-                                 #p = input$split, 
-                                 #list = FALSE)
-    #create training and test set by indexing index object
-    #train_set <- nba_data[index, ]
-    #test_set <- nba_data[-index, ]
-  #})
-  
-  
-  #output$mlr2<- renderPrint({
-    
-    #train_set <- models()
-    
-    #mlr_train_set <- train_set %>%
-      #select(Salary, !!!input$mlrVars)
-    
-    #mlr_test_set <- test_set %>%
-      #select(Salary, !!!input$mlrVars)
-    
-    #train the model with proper method
-    #mlr.fit <- train(Salary ~ .,
-                     #data = mlr_train_set,
-                     #method = 'lm',
-                     #na.action = na.pass,
-                     #trControl = trainControl(method = 'cv',
-                                              #number = 5))
-    
-    #summary(mlr.fit)
-    
-  #})
-  
-  #output$rf <- renderPrint({
-    
-    #train_set <- models()
-    
-    #if(input$cvChoice == "Cross-Validation") {
-      #set up the train control parameters we want
-      #tr <- trainControl(method = 'cv',
-                         #number = as.numeric(input$cv))
-      
-    #} else {
-      #set up the train control parameters we want
-      #tr <- trainControl(method = 'repeatedcv',
-                        # number = as.numeric(input$rcv),
-                         #repeats = as.numeric(input$rcv))
-    #}
-    
-    #rf_train_set <- train_set %>%
-      #select(Salary, !!!input$rfVars)
-    
-    #rf_test_set <- test_set %>%
-      #select(Salary, !!!input$rfVars)
-    
-    #train the model with proper method
-    #rf.fit <- train(Salary ~ .,
-                     #data = rf_train_set,
-                     #method = 'rf',
-                     #na.action = na.pass,
-                     #trControl = tr)
-    
-    #summary(rf.fit)
-    
-  #})
-  
-  
+  #fit the mlr model when the action button is clicked
   mlr <- eventReactive(input$fit, {
-    
+    #create split of data based on user input
     index <- createDataPartition(nba_data$Salary, 
                                  p = input$split, 
                                  list = FALSE)
     #create training and test set by indexing index object
     train_set <- nba_data[index, ]
     test_set <- nba_data[-index, ]
-    
+    #filter train set for only salary and predictors selected by the user, dropping na's
     mlr_train_set <- train_set %>%
       select(Salary, !!!input$mlrVars) %>%
       drop_na()
-    
+    #fit mlr model based on selected predictors from user
     mlr.fit <- train(Salary ~ .,
                      data = mlr_train_set,
                      method = 'lm',
-                     trControl = trainControl(method = 'cv',
-                                              number = 5))
-    
+                     trControl = trainControl(method = 'none'))
     return(mlr.fit)
-    
   })
-  
+  #fit the rf model when the action button is clicked
   rf <- eventReactive(input$fit, {
-    
+    #create split of data based on user input
     index <- createDataPartition(nba_data$Salary, 
                                  p = input$split, 
                                  list = FALSE)
     #create training and test set by indexing index object
     train_set <- nba_data[index, ]
     test_set <- nba_data[-index, ]
-    
+    #filter train set for only salary and predictors selected by the user, dropping na's
     rf_train_set <- train_set %>%
       select(Salary, !!!input$rfVars) %>%
       drop_na()
-    
-    
+    #set up train control using if else logic based on the tuning method selected by user
     if(input$cvChoice == "Cross-Validation") {
       #set up the train control parameters we want
       tr <- trainControl(method = 'cv',
                          number = input$cv)
-    
     } else {
       #set up the train control parameters we want
       tr <- trainControl(method = 'repeatedcv',
                          number = input$rcv,
                          repeats = input$rcv2)
     }
-    
+    #set up grid of tuning parameter based on the range selected from user
     grid <- expand.grid(mtry = seq(from = input$mtry[1], to = input$mtry[2], by = 1))
-    
+    #fit mlr model based on selected predictors from user
     rf.fit <- train(Salary ~ .,
                     data = rf_train_set,
                     method = 'rf',
                     tuneGrid = grid,
                     trControl = tr
                     )
-    
     return(rf.fit)
-    
   })
-  
+  #create print object of a summary on the mlr fit
   output$mlrSum <- renderPrint({
     summary(mlr())
   })
-  
+  #create print object to show summary of rf fit
   output$rfSum <- renderPrint({
     rf()
   })
-  
+  #create plot object of variable importance on rf model
   output$rfPlot <- renderPlot({
     plot(varImp(rf()))
   })
-  
-  output$mlrPred <- renderPrint({
-    
+  #create reactive event that calculates performance of mlr model on test set when action button is clicked
+  mlrPred <- eventReactive(input$fit, {
+    #break up data set based on user input
     index <- createDataPartition(nba_data$Salary, 
                                  p = input$split, 
                                  list = FALSE)
-
+    #create test set
     test_set <- nba_data[-index, ]
-    
+    #filter test set for only salary and predictors selected by the user, dropping na's
     mlr_test_set <- test_set %>%
       select(Salary, !!!input$mlrVars) %>%
       drop_na()
-    
+    #make predictions based on test set
     preds <- predict(mlr(), 
                      newdata = mlr_test_set)
-    
-    #postResample(preds, mlr_test_set$Salary)
-    mlr_test_set
+    #calculate test error of model
+    error <- postResample(preds, mlr_test_set$Salary)
+    #return error
+    return(error)
+    })
+  #create print object that prints the test error for the mlr model
+  output$mlrPred <- renderPrint({
+    mlrPred()
   })
   
-  output$rfPred <- renderPrint({
-    
+  #create reactive event that calculates performance of rf model on test set when action button is clicked
+  rfPred <- eventReactive(input$fit, {
+    #break up data set based on user input
     index <- createDataPartition(nba_data$Salary, 
                                  p = input$split, 
                                  list = FALSE)
-    
+    #create test set
     test_set <- nba_data[-index, ]
-    
+    #filter test set for only salary and predictors selected by the user, dropping na's
     rf_test_set <- test_set %>%
       select(Salary, !!!input$rfVars) %>%
       drop_na()
-    
+    #make predictions based on test set
     preds <- predict(rf(), 
                      newdata = rf_test_set)
-    
-    postResample(preds, rf_test_set$Salary)
+    #calculate test error of model
+    error <- postResample(preds, rf_test_set$Salary)
+    #return error
+    return(error)
   })
-  
+  #create print object that prints the test error for the rf model
+  output$rfPred <- renderPrint({
+    rfPred()
+  })
+  #create dynamic select or user input boxes based on the predictors selected for the mlr model by the user
   output$mlrBoxes <- renderUI({
-    
+    #filter data set to only include predictors selected from user
     filtered <- nba_data %>%
       select(!!!input$mlrVars) %>%
       drop_na()
-    
+    #go through each of the column names of the filtered data set and create either a select input or numeric input based on the class of the object
     lapply(colnames(filtered), FUN = function(x) {
-      
+      #if the class of the given column is factor or character, set up select input
       if(class(filtered[[x]]) %in% c("factor", "character")) {
         
         selectInput(
           inputId = paste("mlr", x, sep = "-"),
           label = paste("Select New Value for",x),
+          #make the choices based on the values in the column
           choices = as.factor(unique(filtered[[x]])))
-        
+      #if the class of the given column is integer or numeric, set up numeric input
       } else if (class(filtered[[x]]) %in% c("integer", "numeric")) {
         
         numericInput(
           inputId =  paste("mlr", x, sep = "-"),
           label = paste("Enter Numeric Value for",x),
+          #make the default the mean of the column values
           value = round(mean(filtered[[x]]),2),
           min = 0,
+          #make the max the max of the column values
           max = round(max(filtered[[x]]),2))
         
       }
-      
     })
   })
-  
+  #create dynamic select or user input boxes based on the predictors selected for the rf model by the user
   output$rfBoxes <- renderUI({
-    
+    #filter data set to only include predictors selected from user
     filtered <- nba_data %>%
       select(!!!input$rfVars) %>%
       drop_na()
-    
+    #go through each of the column names of the filtered data set and create either a select input or numeric input based on the class of the object
     lapply(colnames(filtered), FUN = function(x) {
-      
+      #if the class of the given column is factor or character, set up select input
       if(class(filtered[[x]]) %in% c("factor", "character")) {
         
         selectInput(
           inputId = paste("rf", x, sep = "-"),
           label = paste("Select New Value for",x),
+          #make the choices based on the values in the column
           choices = as.factor(unique(filtered[[x]])))
-        
+      #if the class of the given column is integer or numeric, set up numeric input
       } else if (class(filtered[[x]]) %in% c("integer", "numeric")) {
         
         numericInput(
           inputId =  paste("rf", x, sep = "-"),
           label = paste("Enter Numeric Value for",x),
+          #make the default the mean of the column values
           value = round(mean(filtered[[x]]),2),
           min = 0,
+          #make the max the max of the column values
           max = round(max(filtered[[x]]),2))
         
       }
-      
     })
   })
-  
-  
+  #create table object that includes the predicted salary for the new values provided by the user based on the predictors they select for the model fitting process
   output$mlrNewPred <- renderTable({
-
+    #filter data set to only include predictors selected from user
     filtered <- nba_data %>%
       select(!!!input$mlrVars) %>%
       drop_na()
-    
+    #store names of the columns
     names_ <- colnames(filtered)
-    
+    #store the same format used for ids on either the select or numeric inputs
     inputs_ <- paste("mlr", names_, sep = "-")
-    
+    #go through each of the names and store the predictor name, as well as create a one row one column data frame that includes the name of the predictor and the value provided by the user
     listy <- lapply(inputs_, FUN = function(x){
       
       colname_ <- sub('.*-', '', x)
       
       df <- data.frame(colname_,
                        value = input[[x]])
-      
+      #pivot wider so the value is under the column name which is the proper predictor name
       df <- pivot_wider(df, names_from = colname_, values_from = value)
     }
     )
-    
+    #bind the data frames in the lapply object
     df_ <- bind_cols(listy)
-    
+    #create predicted salary using mlr fit object and new data provided from user
     pred <- predict(mlr(), 
                      newdata = df_)
-    
+    #store the prediction in a data frame, formatted in dollar notation
     data.frame(Salary_Prediction = dollar(pred))
-    
   })
-  
+  #create table object that includes the predicted salary for the new values provided by the user based on the predictors they select for the model fitting process
   output$rfNewPred <- renderTable({
-    
+    #filter data set to only include predictors selected from user
     filtered <- nba_data %>%
       select(!!!input$rfVars) %>%
       drop_na()
-    
+    #store names of the columns
     names_ <- colnames(filtered)
-    
+    #store the same format used for ids on either the select or numeric inputs
     inputs_ <- paste("rf", names_, sep = "-")
-    
+    #go through each of the names and store the predictor name, as well as create a one row one column data frame that includes the name of the predictor and the value provided by the user
     listy <- lapply(inputs_, FUN = function(x){
       
       colname_ <- sub('.*-', '', x)
       
       df <- data.frame(colname_,
                        value = input[[x]])
-      
+      #pivot wider so the value is under the column name which is the proper predictor name
       df <- pivot_wider(df, names_from = colname_, values_from = value)
     }
     )
-    
+    #bind the data frames in the lapply object
     df_ <- bind_cols(listy)
-    
+    #create predicted salary using mlr fit object and new data provided from user
     pred <- predict(rf(), 
                     newdata = df_)
-    
+    #store the prediction in a data frame, formatted in dollar notation
     data.frame(Salary_Prediction = dollar(pred))
     
   })
-  
-  observeEvent(input$debug, {
-    browser()
-  })
-  
+
 }
 
 

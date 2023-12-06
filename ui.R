@@ -46,14 +46,14 @@ fluidPage(
                  selectInput("plotType", 
                              h3(strong("Select Plot Type")),
                              choices = c("Scatter Plot", "Bar Plot",
-                                         "Density", "Box Plot"),
+                                          "Density", "Box Plot"),
                              ),
                  #add conditional panel for more options if scatter plot or density is selected
                  conditionalPanel(condition = "input.plotType == 'Scatter Plot' || input.plotType == 'Density'",
                                   #option to select position
                                   selectInput("position",
                                               h4("Select Position"),
-                                              choices = as.factor(nba_data$Position)),
+                                              choices = as.factor(unique(nba_data$Position))),
                                   #option to select stat
                                   selectInput("stat",
                                               h4("Select Statistic"),
@@ -77,7 +77,7 @@ fluidPage(
                                   #option to select team
                                   selectInput("team",
                                               h4("Select Team"),
-                                              choices = as.factor(nba_data$Team)),
+                                              choices = as.factor(unique(nba_data$Team))),
                                   #option to select stat
                                   selectInput("variable",
                                               h4("Select Data Point"),
@@ -117,7 +117,7 @@ fluidPage(
                                                                selected = 10,
                                                                choices = c(5, 10, 15, 20)))),
                  #add condition panel based on selected plot that gives ability to display top earners
-                 conditionalPanel(condition = "input.plotType == 'Bar Plot' || input.plotType == 'Box'",
+                 conditionalPanel(condition = "input.plotType == 'Bar Plot' || input.plotType == 'Box Plot'",
                                   #option to show top earners
                                   checkboxInput("top2", h5("Show table of the highest earners?")),
                                   #add condition panel based on top earners selected option that gives ability to show certain number of players
@@ -149,45 +149,58 @@ fluidPage(
                  )
                )
              ),
-    
+    #add modeling tab
     tabPanel("Modeling", fluid = TRUE,
+             #set up sub tabs for modeling tab
              tabsetPanel(
+               #add modeling info sub tab on modeling tab
                tabPanel("Modeling Info", fluid = TRUE,
+                        #add header and text for model explanations
                         h4(strong("Multiple Linear Regression and Random Forest Discussion")),
                         p("Below is a description of each of the modeling approaches and the benefits/drawbacks of each."),
                         br(),
+                        #add description of multiple linear regression model
                         h5(strong("Multiple Linear Regression")),
-                        withMathJax(paste0("Multiple Linear Regression (MLR) is a simple supervised learning tool for modeling a quantitative response. One of the main benefits of MLR is that it is much simpler compared to other modern techniques and is easy to interpret. A MLR model has the form $$Y_{i} = \\beta_{0} + X_{i1}\\beta_{1} + X_{i2}\\beta_{2} +...+ X_{ip}\\beta_{p} + \\epsilon_{i}$$ where $$Y_{i}$$ is a quantitative response, $$X_{i1},...,X_{ip}$$ are predictor variables, and $$\\epsilon_{i}$$ is the unobserved random error. This model can be extended in many ways by including higher order polynomial terms and interaction effects between the predictors. $$\\beta_{0}$$ is the intercept, the coefficients $$\\beta_{j} = 1,...p$$ are coefficients associated with predictor$$X_{ij}$$. The value of $$\\beta_{j}$$ indicates the strength and direction of the linear relationship between $$X_{ij}$$ and $$Y_{i}$$ and can be interpreted as the rate of change in the mean response due to a one unit increase in the j-th predictor while keeping the other predictors fixed. The coefficients are true unknown values that need to be estimated from the data. Upon estimation, the resulting equation becomes, $$\\hat{Y}_i = \\hat{\\beta}_0 + X_{i1}\\hat{\\beta}_1 + X_{i2}\\hat{\\beta}_2 +...+ X_{ip}\\hat{\\beta}_p$$, which is used to make predictions. A common estimation procedure for the regression coefficients is the least squares technique, which first starts by calculating the residual sum of squares, which is the sum of all the true observed values minus the corresponding predicted values (residuals), squared. The coefficients are then estimated by minimizing the sum of squared residuals, $$\\sum_{i=1}^n (Y_{i}- \\hat{\\beta}_0 - X_{i1}\\hat{\\beta}_1 -...- X_{ip}\\hat{\\beta}_p)^2$$, with respect to $$\\beta_{j}s$$. The major drawbacks of the MLR model are the numerous statistical assumptions made on the data and the lack of predictive power compared to other models. Specifically, this model assumes a linear relationship between the response and predictors, constant variance in the errors, and the errors being normally distributed. There can be a lack of performance if one of these assumptions are violated, or if there exists influential points and multicollinearity among the predictors.")),
+                        #use mathjax to put in math equations
+                        withMathJax(paste0("Multiple Linear Regression (MLR) is a simple supervised learning tool for modeling a quantitative response. One of the main benefits of MLR is that it is much simpler compared to other modern techniques and is easy to interpret. A MLR model has the form \\(Y_{i} = \\beta_{0} + X_{i1}\\beta_{1} + X_{i2}\\beta_{2} +...+ X_{ip}\\beta_{p} + \\epsilon_{i}\\), where \\(Y_{i}\\) is a quantitative response, \\(X_{i1},...,X_{ip}\\) are predictor variables, and \\(\\epsilon_{i}\\) is the unobserved random error. This model can be extended in many ways by including higher order polynomial terms and interaction effects between the predictors. \\(\\beta_{0}\\) is the intercept, the coefficients, \\(\\beta_{j} = 1,...,p\\), are coefficients associated with predictor \\(X_{ij}\\). The value of \\(\\beta_{j}\\) indicates the strength and direction of the linear relationship between \\(X_{ij}\\) and \\(Y_{i}\\) and can be interpreted as the rate of change in the mean response due to a one unit increase in the j-th predictor while keeping the other predictors fixed. The coefficients are true unknown values that need to be estimated from the data. Upon estimation, the resulting equation becomes, \\(\\hat{Y}_i = \\hat{\\beta}_0 + X_{i1}\\hat{\\beta}_1 + X_{i2}\\hat{\\beta}_2 +...+ X_{ip}\\hat{\\beta}_p\\), which is used to make predictions. A common estimation procedure for the regression coefficients is the least squares technique, which first starts by calculating the residual sum of squares, which is the sum of all the true observed values minus the corresponding predicted values (residuals), squared. The coefficients are then estimated by minimizing the sum of squared residuals, \\(\\sum_{i=1}^n (Y_{i}- \\hat{\\beta}_0 - X_{i1}\\hat{\\beta}_1 -...- X_{ip}\\hat{\\beta}_p)^2\\), with respect to \\(\\beta_{j}s\\). The major drawbacks of the MLR model are the numerous statistical assumptions made on the data and the lack of predictive power compared to other models. Specifically, this model assumes a linear relationship between the response and predictors, constant variance in the errors, and the errors being normally distributed. There can be a lack of performance if one of these assumptions are violated, or if there exists influential points and multicollinearity among the predictors.")),
                         br(),
                         br(),
                         br(),
+                        #add description of random forest model
                         h5(strong("Random Forest")), 
                         p("This description will assume a regression task, but the concept is similar to a classification task. A tree based method partitions the feature space into a set of regions, and then fits a simple model, such as a constant function, in each region. The splits to create the partition are performed using recursive binary splitting, where every distinct value of every predictor is searched through to find the predictor and split point that partitions the data into two groups such that the overall sums of squares error is minimized. This process continues until some stopping criteria is reached. The predicted value is the average of the responses in the region in which the new observation falls in. This can be extended to many concepts such as bagging and random forests. Bagging uses bootstrap aggregation to fit many trees and creates a final prediction using an average of the predicted values from all of the trees. Random forest builds upon bagging by taking this one step further, where for each tree at each split, only a subset of predictors are used. This can improve prediction over a single tree fit and over bagged trees by reducing the overall variance of the predictions. A single tree fit is highly variable, where a small change in the data could result in a completely different tree fit. Bagging attempts to improve this by taking an average of many predicted values from many trees, since the variance of an average with trees that are independent and identically distributed is lower than the variance of one single tree fit. While bagging generally reduces the variance and overall test error, these trees are highly correlated since if there is one or two strong predictors that explain the response, they will most likely dominate all the tree fits, having similar splits. This means the average doesn't reduce the variance as much. Random forest corrects this correlation between the trees by only looking at a subset of predictors at the splits. The goal of this is to reduce the correlation between the trees which in hope would reduce the variance of the average predicted value and lower the overall test error. As you can see, the major benefit to a random forest model is its predictive power. Random forests are also able to utilize different methodologies to look at variable importance measures, which can be helpful for variable selection, and do not make statistical assumptions. The major drawbacks are the lack of interpretability and potentially high computation time.")
-                        
-                        
-),
+                        ),
+               #add model fitting sub tab on modeling tab
                tabPanel("Model Fitting", fluid = TRUE,
                         #set up sidebar layout
                         sidebarLayout(
                           sidebarPanel(
+                            #add instructions description
+                            p(strong("Instructions:"),"Select model specifications below and click the 'Fit Models' button once ready. Once the button is clicked, the models will be trained on the training data, and once complete, will output various fit statistics on the training and test data sets. If you would like to fit the models with different specifications, change the options provided and re-click the 'Fit Models' button."),
+                            #add slider input for selecting train/set split
                             sliderInput("split", "Select train/test split",
                                         min = 0, max = 1, value = .8),
+                            #allow user to select any columns from data set as predictors
                             varSelectInput("mlrVars", "Select Predictor Variables to use in the Multiple Linear Regression Model", 
                                            data = nba_data[, 4:52],
                                            selected = c("Age", "Points_Per_Game", "Player_Efficiency_Rating", "True_Shooting_Percentage", "Win_Shares"),
                                            multiple = TRUE),
+                            #allow user to select any columns from data set as predictors
                             varSelectInput("rfVars", "Select Predictor Variables to use in the Random Forest Model", 
                                            data = nba_data[, 4:52],
                                            selected = c("Position", "Age", "Team", "Points_Per_Game", "Player_Efficiency_Rating", "True_Shooting_Percentage", "Win_Shares"),
                                            multiple = TRUE),
+                            #allow user to select number of predictors at each split
                             sliderInput("mtry", "Select Tuning Parameter Range for the Number of Predictors Used at Each Split in the Random Forest Model",
                                         min = 1,
                                         max = 7,
                                         value = c(1,6),
                                         step = 1),
+                            #allow user to select between cv and repeated cv
                             selectInput("cvChoice",
-                                        h4("Select Tuning Methedology for Random Forest Model"),
+                                        h4("Select Tuning Methodology for Random Forest Model"),
                                         choices = c("Cross-Validation", "Repeated Cross-Validation")),
+                            #condition on cv choice based on needing repeats and folds, or just folds
                             conditionalPanel(condition = "input.cvChoice == 'Cross-Validation'",
                                              sliderInput("cv",
                                                          h6("How Many Folds?"),
@@ -208,51 +221,59 @@ fluidPage(
                                                          max = 5,
                                                          value = 3,
                                                          step = 1)),
+                            #add button that user clicks to fit models
                             actionButton("fit", "Fit Models")
-                            
-                            
                           ),
+                          #set up main panel
                           mainPanel(
+                            #add mlr performance on test set
                             h5(strong("Multiple Linear Regression Model Performance on the Test Set")),
                             verbatimTextOutput("mlrPred"),
+                            #add mlr performance on train set
                             h5(strong("Multiple Linear Regression Model Performance on the Training Set")),
                             verbatimTextOutput("mlrSum"),
+                            #add rf performance on test set
                             h5(strong("Random Forest Model Performance on the Test Set")),
                             verbatimTextOutput("rfPred"),
+                            #add rf performance on train set
                             h5(strong("Random Forest Model Performance on the Training Set")),
                             verbatimTextOutput("rfSum"),
+                            #add variable importance plot for rf
                             h5(strong("Random Forest Model Variable Importance")),
                             plotOutput("rfPlot")
-                          ) 
-                        )
-                        
+                            )
+                          )
                         ),
+               #add prediction sub tab on modeling tab
                tabPanel("Prediction", fluid = TRUE,
+                        #set up sidebar layout
                         sidebarLayout(
                           sidebarPanel(
-                            h3("Enter New Observations for selected Multiple Linear Regression Model Predictors"),
-                            actionButton("debug", "debug"),
+                            #add instructions paragraph
+                            p(strong("Instructions:"),"Based on the predictor variables selected for each model on the 'Model Fitting' tab, select or numeric input boxes will be provided to make predictions on salary. In order for predictions to be shown, models need to have been trained on the 'Model Fitting' tab by clicking the 'Fit Models' button. As long as there are actively trained models, you can change the values below, and the predictions will automatically be adjusted. If you would like to make predictions from each model on different predictors, you must re-train the models on the 'Model Fitting' tab."),
+                            br(),
+                            #add dynamic text or numeric input boxes based on predictors selected from server
+                            h3("Multiple Linear Regression Model"),
                             uiOutput("mlrBoxes"),
-                            h3("Enter New Observations for selected Random Forest Model Predictors"),
+                            br(),
+                            #add dynamic text or numeric input boxes based on predictors selected from server
+                            h3("Random Forest Model"),
                             uiOutput("rfBoxes")
-                            
                             ),
+                          #set up main panel
                           mainPanel(
-                            h3("Predicted Salary Using Multiple Linear Regression Model Based on Provided Inputs"),
-                            h3(strong(tableOutput("mlrNewPred"))),
-                            h3("Predicted Salary Using Random Forest Model Based on Provided Inputs"),
-                            h3(strong(tableOutput("rfNewPred")))
-                            
+                            #add table output of new prediction from mlr model
+                            h4("Predicted Salary Using Multiple Linear Regression Model Based on Provided Inputs"),
+                            h4(strong(tableOutput("mlrNewPred"))),
+                            #add table output of new prediction from rf model
+                            h4("Predicted Salary Using Random Forest Model Based on Provided Inputs"),
+                            h4(strong(tableOutput("rfNewPred")))
                             )
-                          
                           )
-                        
                         )
-                        
-                        
-                       )     
+               )
+             )
     )
   )
-)
   
   
