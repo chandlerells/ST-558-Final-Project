@@ -456,7 +456,6 @@ function(input, output, session) {
   output$mlrPred <- renderPrint({
     mlrPred()
   })
-  
   #create reactive event that calculates performance of rf model on test set when action button is clicked
   rfPred <- eventReactive(input$fit, {
     #break up data set based on user input
