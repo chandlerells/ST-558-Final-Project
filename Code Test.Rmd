@@ -305,4 +305,17 @@ filtered <- nba_data %>%
                              value = "GSW"), names_from = colname_, values_from = value)
 ```
 
+```{r}
+library(shiny)
+library(tidyverse)
+library(ggrepel)
+library(scales)
+library(caret)
+library(shiny)
+library(tidyverse)
+library(shinyWidgets)
+library(mathjaxr)
+
+install.packages(c("shiny", "tidyverse", "ggrepel", "scales", "caret", "shinyWidgets", "mathjaxr"))
+```
 
