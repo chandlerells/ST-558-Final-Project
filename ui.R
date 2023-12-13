@@ -3,6 +3,20 @@ library(shiny)
 library(tidyverse)
 library(shinyWidgets)
 library(mathjaxr)
+#read in data
+nba_data <- read_csv("nba_2022-23_all_stats_with_salary.csv")
+#rename columns for interpretability that will be used as inputs for the user 
+nba_data <- nba_data %>%
+  rename(Minutes_Per_Game = MP, 
+         Field_Goals_Made_Per_Game = FG,
+         Field_Goal_Percentage = 'FG%',
+         Three_Pointers_Made_Per_Game = '3P',
+         Two_Pointers_Made_Per_Game = '2P',
+         Assists_Per_Game = AST,
+         Points_Per_Game = PTS,
+         Player_Efficiency_Rating = PER,
+         True_Shooting_Percentage = 'TS%',
+         Win_Shares = WS)
 # Define UI for application
 fluidPage(
   #set background color of app
