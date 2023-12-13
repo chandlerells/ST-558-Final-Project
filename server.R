@@ -565,11 +565,19 @@ function(input, output, session) {
     )
     #bind the data frames in the lapply object
     df_ <- bind_cols(listy)
-    #create predicted salary using mlr fit object and new data provided from user
-    pred <- predict(mlr(), 
-                     newdata = df_)
-    #store the prediction in a data frame, formatted in dollar notation
-    data.frame(Salary_Prediction = dollar(pred))
+    #add error message to fit model if predictors columns are changed
+    tryCatch(
+      expr = {
+        #create predicted salary using mlr fit object and new data provided from user
+        pred <- predict(mlr(), 
+                        newdata = df_)
+        #store the prediction in a data frame, formatted in dollar notation
+        data.frame(Salary_Prediction = dollar(pred))
+      }, error = function(e) {
+        #add error message
+        custom_message <- paste('Click "Fit Models" Button on Model Fitting Tab')
+        return(custom_message)
+      })
   })
   #create table object that includes the predicted salary for the new values provided by the user based on the predictors they select for the model fitting process
   output$rfNewPred <- renderTable({
@@ -594,12 +602,19 @@ function(input, output, session) {
     )
     #bind the data frames in the lapply object
     df_ <- bind_cols(listy)
-    #create predicted salary using mlr fit object and new data provided from user
-    pred <- predict(rf(), 
-                    newdata = df_)
-    #store the prediction in a data frame, formatted in dollar notation
-    data.frame(Salary_Prediction = dollar(pred))
-    
+    #add error message to fit model if predictors columns are changed
+    tryCatch(
+      expr = {
+        #create predicted salary using mlr fit object and new data provided from user
+        pred <- predict(rf(), 
+                        newdata = df_)
+        #store the prediction in a data frame, formatted in dollar notation
+        data.frame(Salary_Prediction = dollar(pred))
+      }, error = function(e) {
+        #add error message
+        custom_message <- paste('Click "Fit Models" Button on Model Fitting Tab')
+        return(custom_message)
+      })
   })
 
 }
