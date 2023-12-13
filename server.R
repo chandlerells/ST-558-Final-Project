@@ -383,7 +383,10 @@ function(input, output, session) {
                      data = mlr_train_set,
                      method = 'lm',
                      trControl = trainControl(method = 'none'))
-    return(mlr.fit)
+    #find summary of fit
+    sum_ <- summary(mlr.fit)
+    #store fit and summary
+    list(mlr.fit, sum_)
   })
   #fit the rf model when the action button is clicked
   rf <- eventReactive(input$fit, {
@@ -422,9 +425,7 @@ function(input, output, session) {
   })
   #create print object of a summary on the mlr fit
   output$mlrSum <- renderPrint({
-    if (exists(mlr())) {
-    summary(mlr())
-    }
+    mlr()[[2]]
   })
   #create print object to show summary of rf fit
   output$rfSum <- renderPrint({
@@ -447,7 +448,7 @@ function(input, output, session) {
       select(Salary, !!!input$mlrVars) %>%
       drop_na()
     #make predictions based on test set
-    preds <- predict(mlr(), 
+    preds <- predict(mlr()[[1]], 
                      newdata = mlr_test_set)
     #calculate test error of model
     error <- postResample(preds, mlr_test_set$Salary)
@@ -571,7 +572,7 @@ function(input, output, session) {
     tryCatch(
       expr = {
         #create predicted salary using mlr fit object and new data provided from user
-        pred <- predict(mlr(), 
+        pred <- predict(mlr()[[1]], 
                         newdata = df_)
         #store the prediction in a data frame, formatted in dollar notation
         data.frame(Salary_Prediction = dollar(pred))
