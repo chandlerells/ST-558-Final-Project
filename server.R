@@ -422,7 +422,9 @@ function(input, output, session) {
   })
   #create print object of a summary on the mlr fit
   output$mlrSum <- renderPrint({
+    if (exists(mlr())) {
     summary(mlr())
+    }
   })
   #create print object to show summary of rf fit
   output$rfSum <- renderPrint({
